@@ -2,7 +2,7 @@ import sys
 import gc
 from PyQt5 import QtWidgets, Qt, QtGui
 from vtk.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
-from vedo import Volume
+from vedo import Volume, Image
 
 from utils.renderer import CustomIsosurfaceBrowser, CustomRayCastPlotter
 from utils.viewer import Ui_MainWindow
@@ -28,38 +28,33 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def update_volume(self):
         if not self.first_load:
-            # Clear the plotter and close it to release the memory
-            self.plt1.clear()
-            self.plt2.clear()
-            gc.collect()
-            print('gc.collect()')
-            self.vol1._update(self.volume_path)
-            self.vol2._update(self.volume_path)
+            self.vol1._update(Volume(self.volume_path).dataset)
+            self.vol2._update(self.vol1.copy().dataset)
         else:
             self.vol1 = Volume(self.volume_path)
             self.vol2 = self.vol1.copy()
-            # Apply shifting
-            volume_array = self.vol1.tonumpy()
-            add_value = 600
-            orange_value = 2600
-            green_value = 3600
-            blue_value = 5500
-            # volume_array[(volume_array <= 1200)] = 0
-            volume_array[(volume_array >= 1200)] += add_value
+        # Apply shifting
+        volume_array = self.vol1.tonumpy()
+        add_value = 600
+        orange_value = 2600
+        green_value = 3600
+        blue_value = 5500
+        # volume_array[(volume_array <= 1200)] = 0
+        volume_array[(volume_array >= 1200)] += add_value
 
-            self.vol1.modified()
-            # Apply color mapping
-            self.vol1.color([(orange_value + add_value, (244, 102, 27)), (green_value + add_value, (0, 255, 0)),
-                            (blue_value + add_value, (0, 0, 127))])
-            self.vol1.alpha([(orange_value, 1), (green_value + add_value, 0.7), (blue_value + add_value, 0.7)])
-            self.plt1 = CustomRayCastPlotter(self.vol1.mode(1), bg='white', bg2='white',
-                                             axes=7, qt_widget=self.vtkWidget1)
+        self.vol1.modified()
+        # Apply color mapping
+        self.vol1.color([(orange_value + add_value, (244, 102, 27)), (green_value + add_value, (0, 255, 0)),
+                        (blue_value + add_value, (0, 0, 127))])
+        self.vol1.alpha([(orange_value, 1), (green_value + add_value, 0.7), (blue_value + add_value, 0.7)])
+        self.plt1 = CustomRayCastPlotter(self.vol1.mode(1), bg='white', bg2='white',
+                                         axes=7, qt_widget=self.vtkWidget1)
 
-            # self.id2 = self.plt1.add_callback("key press", self.onKeypress)
-            self.plt2 = CustomIsosurfaceBrowser(self.vol2, use_gpu=True, isovalue=1350, qt_widget=self.vtkWidget2)
-            self.plt1.show(viewup="z")
-            self.plt2.show(axes=7, bg2='lb')
-            self.first_load = False
+        # self.id2 = self.plt1.add_callback("key press", self.onKeypress)
+        self.plt2 = CustomIsosurfaceBrowser(self.vol2, use_gpu=True, isovalue=1350, qt_widget=self.vtkWidget2, axes=7)
+        self.plt1.show(viewup="z")
+        self.plt2.show(axes=7, bg2='lb')
+        self.first_load = False
 
     @Qt.pyqtSlot()
     def onClick_mode(self):
