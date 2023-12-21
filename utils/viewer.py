@@ -114,6 +114,14 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         settings_action.triggered.connect(self.openSettingsDialog)
         self.settings_menu.addAction(settings_action)
 
+        # Create a Help or About menu
+        self.help_menu = self.menubar.addMenu('Help')
+
+        # Add an About action
+        self.about_action = QtWidgets.QAction('About', self)
+        self.about_action.triggered.connect(self.openAboutDialog)
+        self.help_menu.addAction(self.about_action)
+
         MainWindow.setMenuBar(self.menubar)
 
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
@@ -247,6 +255,18 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
     def onClick_masks(self):
         if self.volume_path is not None:
             self.update_mask()
+
+    def openAboutDialog(self):
+        about_text = """
+Viewer Version 1.1
+
+This application is designed and developed by AUXILIA-TECH for efficient and effective 3D visualization of X-ray security data. It offers a range of features designed to help professionals gain insights and make informed decisions.
+
+Copyright © 2023 AUXILIA. All rights reserved.
+
+For more information or to provide feedback, please contact us at auxilia-tech.com
+        """
+        QtWidgets.QMessageBox.about(self, "About Viewer", about_text)
 
 
 class SettingsDialog(QtWidgets.QDialog):
