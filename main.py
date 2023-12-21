@@ -1,82 +1,71 @@
 import sys
-import gc
-from PyQt5 import QtWidgets, Qt, QtGui
-from vtk.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
-from vedo import Volume, Image
 
-from utils.renderer import CustomIsosurfaceBrowser, CustomRayCastPlotter
+from PyQt5 import QtWidgets, QtGui
+from vedo import Volume
+
+from utils.renderer import CustomPlotter
 from utils.viewer import Ui_MainWindow
 
 
-class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
+class MainWindow(Ui_MainWindow):
 
     def __init__(self, parent=None):
-        QtWidgets.QMainWindow.__init__(self, parent)
+        Ui_MainWindow.__init__(self, parent)
         self.setupUi(self)
 
-        self.vtkWidget1 = QVTKRenderWindowInteractor(self)
-        self.vtkLayout1.addWidget(self.vtkWidget1)
-
-        self.mode_button = QtWidgets.QPushButton("Mode")
-        self.mode_button.setToolTip("Change volume Mode")
-        self.mode_button.clicked.connect(self.onClick_mode)
-        self.mode_button.setFixedSize(100, 60)
-        self.vtkLayout1.addWidget(self.mode_button)
-
-        self.vtkWidget2 = QVTKRenderWindowInteractor(self)
-        self.vtkLayout2.addWidget(self.vtkWidget2)
+        # Set OGB color map
+        self.ogb_cmap = [int(2600), int(3600), int(5500)]
 
     def update_volume(self):
         if not self.first_load:
-            self.vol1._update(Volume(self.volume_path).dataset)
-            self.vol2._update(self.vol1.copy().dataset)
+            self.vol._update(Volume(self.volume_path).dataset)
         else:
-            self.vol1 = Volume(self.volume_path)
-            self.vol2 = self.vol1.copy()
-        # Apply shifting
-        volume_array = self.vol1.tonumpy()
-        add_value = 600
-        orange_value = 2600
-        green_value = 3600
-        blue_value = 5500
-        # volume_array[(volume_array <= 1200)] = 0
-        volume_array[(volume_array >= 1200)] += add_value
+            self.vol = Volume(self.volume_path)
 
-        self.vol1.modified()
         # Apply color mapping
-        self.vol1.color([(orange_value + add_value, (244, 102, 27)), (green_value + add_value, (0, 255, 0)),
-                        (blue_value + add_value, (0, 0, 127))])
-        self.vol1.alpha([(orange_value, 1), (green_value + add_value, 0.7), (blue_value + add_value, 0.7)])
-        self.plt1 = CustomRayCastPlotter(self.vol1.mode(1), bg='white', bg2='white',
-                                         axes=7, qt_widget=self.vtkWidget1)
+            self.vol.color([(self.ogb_cmap[0], (244, 102, 27)), (self.ogb_cmap[1], (0, 255, 0)),
+                            (self.ogb_cmap[2], (0, 0, 127))])
+            self.vol.alpha([(self.ogb_cmap[0], 1), (self.ogb_cmap[1], 0.7), (self.ogb_cmap[2], 0.7)])
+            self.plt = CustomPlotter(self.vol.mode(1), bg='white', bg2='white', use_gpu=True, isovalue=1350,
+                                     axes=7, qt_widget=self.vtkWidget1)
+            self.plt.show(viewup="z")
 
-        # self.id2 = self.plt1.add_callback("key press", self.onKeypress)
-        self.plt2 = CustomIsosurfaceBrowser(self.vol2, use_gpu=True, isovalue=1350, qt_widget=self.vtkWidget2, axes=7)
-        self.plt1.show(viewup="z")
-        self.plt2.show(axes=7, bg2='lb')
         self.first_load = False
+        self.plt.render()
+        self.plt.setOTF()
 
-    @Qt.pyqtSlot()
-    def onClick_mode(self):
-        if self.volume_path is not None:
-            s = self.vol1.mode()
-            snew = (s + 1) % 2
-            self.vol1.mode(snew)
-            self.plt1.render()
-            if snew == 0:
-                self.plt1.w0.value = 0.01
+    def update_mask(self):
+        if len(self.mask_files) > 0:
+            self.loaded_mask_id = 0 if self.loaded_mask_id is None else self.loaded_mask_id + 1
+            if self.loaded_mask_id >= len(self.mask_files):
+                self.remove_mask()
+            elif self.loaded_mask is None:
+                self.loaded_mask = Volume(self.mask_files[self.loaded_mask_id]).origin((0,0,0))
+                self.plt.add(self.loaded_mask.color('red'))
             else:
-                self.plt1.w0.value = 1
-            self.plt1.setOTF()
-            self.plt1.bum.status(snew)
+                self.loaded_mask._update(Volume(self.mask_files[self.loaded_mask_id]).dataset)
+            self.update_text_button_masks()
+            self.plt.render()
+            self.plt.setOTF()
+
+    def set_mode(self, mode):
+        self.vol.mode(mode)
+        if mode == 5:
+            self.vol.alpha(1)
+        self.plt.render()
+        self.plt.w0.value = 0.1 if mode == 0 else 1
+        self.plt.alphaslider0 = 0.1 if mode == 0 else 1
+        self.plt.setOTF()
+
+    def remove_mask(self):
+        self.plt.remove(self.loaded_mask)
+        self.loaded_mask = None
+        self.loaded_mask_id = None
+        self.plt.render()
+        self.plt.setOTF()
 
     def onClose(self):
         self.vtkWidget1.close()
-
-    def onKeypress(self, evt):
-        print("You have pressed key:", evt.keypress)
-        if evt.keypress == 'q':
-            sys.exit(0)
 
 
 if __name__ == "__main__":
