@@ -9,10 +9,18 @@
 ## Prérequis
 
 - vedo
-- vtk
+- vtkmodules
 - PyQt5
   
 ## Installation
+Download the latest ctviewer for :
+  - Macos   : [link]
+  - Linux   : [link]
+  - Windows : [link]
+
+or 
+
+clone and run the project with this commandes : 
 
 ```bash
 git clone https://github.com/Auxilia-tech/ctviewer.git
