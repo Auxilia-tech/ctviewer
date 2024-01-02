@@ -14,7 +14,7 @@
   
 ## Installation
 Download the latest ctviewer for :
-  - Macos   : [ctviewer.dmg]([https://github.com/Auxilia-tech/UI-emulator](https://drive.google.com/file/d/1oRW4kZHNm6IbNOdcR0exBX2xKL6gXoDg/view?usp=drive_link))
+  - Macos   : [download](https://drive.google.com/file/d/1oRW4kZHNm6IbNOdcR0exBX2xKL6gXoDg/view?usp=drive_link)
   - Linux   : [link]
   - Windows : [link]
 
