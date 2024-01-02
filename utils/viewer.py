@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
-from PyQt5 import QtCore, QtWidgets, QtGui, Qt
-from vtk.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
+from PyQt5 import QtCore, QtWidgets, Qt
+from vtkmodules.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 import glob
 import sys
 
