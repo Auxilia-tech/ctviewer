@@ -17,7 +17,7 @@ executables = Executable("main.py",
 
 setup(
     name="CTViewer",
-    version="0.5",
+    version="1.1",
     description="Auxilia CTViewer !",
     options={"build_exe": build_exe_options},
     executables=[executables],
