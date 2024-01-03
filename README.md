@@ -1,34 +1,33 @@
 <div align="center">
   <p>
-      <img width="40%" src="icons/ctviewer.png" alt="CTViewer banner"></a>
+      <img width="40%" src="icons/ctviewer.png" alt="CTViewer Banner"></a>
   </p>
-<div>
-3D CT file viewer is an application designed for visualizing volumetric images generated from computed tomography (CT) data. This type of viewer typically offers two main modes for 3D representation: Ray Cast Plotter mode (with Max Projection and Composite mode) and Iso Surface Browser mode.
 
-## Capture d'écran
+**3D CT File Viewer** is an application designed for visualizing volumetric images generated from computed tomography (CT) data. This type of viewer typically offers two main modes for 3D representation: **Ray Cast Plotter mode** (with Max Projection and Composite mode) and **Iso Surface Browser mode**.
+</div>
 
-![Capture d'écran du projet](images/Screenshot.png)
+## <div align="center">Screenshot</div>
 
-## Prérequis
+![Project Screenshot](images/Screenshot.png)
+
+## <div align="center">Prerequisites</div>
 
 - vedo
 - vtkmodules
 - PyQt5
   
-## Installation
-Download the latest ctviewer for :
-  - Macos   : [download](https://drive.google.com/file/d/18xWq3xtTa9L3c9vvSTInRqMwC7WcBD5l/view?usp=drive_link)
-  - Linux   : [link]
-  - Windows : [link]
+## <div align="center">Installation</div>
 
-or 
+Download the latest version of CTViewer for your platform:
 
-clone and run the project with this commandes : 
+- **macOS**: [Download](https://drive.google.com/file/d/18xWq3xtTa9L3c9vvSTInRqMwC7WcBD5l/view?usp=sharing)
+- **Linux**: [Download](#)
+- **Windows**: [Download](#)
+
+Alternatively, you can clone the project and run it locally with the following commands:
 
 ```bash
 git clone https://github.com/Auxilia-tech/ctviewer.git
 cd ctviewer
 pip install -r requirements.txt
 python main.py
-
-```
