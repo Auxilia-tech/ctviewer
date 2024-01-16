@@ -6,6 +6,7 @@ import glob
 import sys
 
 ROOT = Path(__file__).resolve().parents[2]
+EXT = 'mhd'
 
 try:
     _encoding = QtWidgets.QApplication.UnicodeUTF8
@@ -21,7 +22,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("Auxilia Viewer")
-        MainWindow.resize(1700, 2300)
+        MainWindow.resize(1920, 1080)
 
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
@@ -44,7 +45,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
         # Add a QTreeView to the left side of the main window
         self.treeView = QtWidgets.QTreeView(self.centralwidget)
-        self.treeView.setObjectName("treeView of mhd volume files")
+        self.treeView.setObjectName(f"treeView of {EXT} volume files")
         self.treeView.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.treeView.setMaximumWidth(250)  # Set a maximum width for the tree view
 
@@ -60,7 +61,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.treeView.setModel(self.fileSystemModel)
         self.data_path = '../datasets/' if os.path.exists('../datasets/') else str(ROOT)
         self.fileSystemModel.setRootPath(self.data_path)
-        self.fileSystemModel.setNameFilters(['*volume*.mhd'])
+        self.fileSystemModel.setNameFilters([f'*volume*.{EXT}'])
         self.fileSystemModel.setNameFilterDisables(False)
         self.treeView.setRootIndex(self.fileSystemModel.index(self.data_path))
         self.treeView.clicked.connect(self.treeItemClicked)
@@ -151,15 +152,26 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.iso_button.clicked.connect(self.onClick_iso)
         self.iso_button.setFixedSize(100, 60)
 
+        self.slice_button = QtWidgets.QPushButton("3D Slider")
+        self.slice_button.setToolTip("Cut the volume in 2D slices")
+        self.slice_button.clicked.connect(self.onClick_slice)
+        self.slice_button.setFixedSize(100, 60)
+
         self.masks_button = QtWidgets.QPushButton("Masks")
         self.masks_button.setToolTip("Load masks detected by the X-ray machine")
         self.masks_button.clicked.connect(self.onClick_masks)
         self.masks_button.setFixedSize(100, 60)
 
+        self.clean_button = QtWidgets.QPushButton("Clean")
+        self.clean_button.setToolTip("Delete loaded masks and volume")
+        self.clean_button.clicked.connect(self.onClick_clean)
+        self.clean_button.setFixedSize(100, 60)
+
         # Ajouter les boutons au layout horizontal
         self.buttonsLayout.addWidget(self.mode0_button)
         self.buttonsLayout.addWidget(self.mode1_button)
         self.buttonsLayout.addWidget(self.iso_button)
+        self.buttonsLayout.addWidget(self.slice_button)
         self.buttonsLayout.addWidget(self.masks_button)
 
         # Ajouter un stretch pour aligner les boutons à gauche
@@ -186,11 +198,11 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
     def openFolderDialog(self):
         options = QtWidgets.QFileDialog.Options()
-        self.data_path = QtWidgets.QFileDialog.getExistingDirectory(self, "Select mhd data Folder", options=options)
+        self.data_path = QtWidgets.QFileDialog.getExistingDirectory(self, f"Select {EXT} data Folder", options=options)
         if self.data_path:
             print("Selected Folder:", self.data_path)
-            self.mhd_files = [path for path in Path(self.data_path).rglob('*.' + 'mhd')]
-            if len(self.mhd_files) > 0:
+            self.volume_files = [path for path in Path(self.data_path).rglob('*.' + EXT)]
+            if len(self.volume_files) > 0:
                 # Update the file system model with the new root path
                 self.fileSystemModel.setRootPath(self.data_path)
                 self.treeView.setRootIndex(self.fileSystemModel.index(self.data_path))
@@ -200,19 +212,19 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
     def showEmptyFolderPopup(self):
         msg = QtWidgets.QMessageBox()
         msg.setIcon(QtWidgets.QMessageBox.Warning)
-        msg.setText(f"No .mhd volumes in {self.data_path}")
+        msg.setText(f"No .{EXT} volumes in {self.data_path}")
         msg.setWindowTitle("Empty Folder Path")
         msg.exec_()
 
     def treeItemClicked(self, index):
         volume_path = self.fileSystemModel.filePath(index)
-        if volume_path.endswith(".mhd"):
+        if volume_path.endswith(f".{EXT}"):
             self.volume_path = volume_path
             print("Selected Volume:", self.volume_path)
             if self.loaded_mask is not None:
                 self.remove_mask()
             self.update_volume()
-            search_pattern = os.path.join(os.path.dirname(self.volume_path), '*labelMask.mhd')
+            search_pattern = os.path.join(os.path.dirname(self.volume_path), f'*labelMask.{EXT}')
             self.mask_files = glob.glob(search_pattern)
             print(f"{len(self.mask_files)} masks found")
             self.update_color_button_masks()
@@ -239,22 +251,83 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
     @Qt.pyqtSlot()
     def onClick_mode_0(self):
         if self.volume_path is not None:
-            self.set_mode(0)
+            if self.vol.mode() == 5:
+                self.plt.quit_iso_surface()
+                self.plt.init_ray_cast(0)
+            elif self.plt.slice_mode == True:
+                self.plt.quit_3d_slider()
+                self.plt.init_ray_cast(0)
+            else:
+                self.vol.mode(0)
+            self.plt.w0.value = 0.1
+            self.plt.alphaslider0 = 0.1
+            self.plt.w1.value = 0.7
+            self.plt.alphaslider1 = 0.7
+            self.plt.w2.value = 1
+            self.plt.alphaslider2 = 1
+            self.plt.render()
+            self.plt.setOTF()
 
     @Qt.pyqtSlot()
     def onClick_mode_1(self):
         if self.volume_path is not None:
-            self.set_mode(1)
+            if self.vol.mode() == 5:
+                self.plt.quit_iso_surface()
+                self.plt.init_ray_cast(1)
+            elif self.plt.slice_mode == True:
+                self.plt.quit_3d_slider()
+                self.plt.init_ray_cast(1)
+            else:
+                self.vol.mode(1)
+            self.plt.w0.value = 1
+            self.plt.alphaslider0 = 1
+            self.plt.w1.value = 0.7
+            self.plt.alphaslider1 = 0.7
+            self.plt.w2.value = 1
+            self.plt.alphaslider2 = 1
+            self.plt.render()
+            self.plt.setOTF()
 
     @Qt.pyqtSlot()
     def onClick_iso(self):
         if self.volume_path is not None:
-            self.set_mode(5)
+            if self.plt.slice_mode == True:
+                self.plt.quit_3d_slider()
+                self.plt.init_iso_surface()
+            elif self.vol.mode() != 5:
+                self.plt.quit_ray_cast()
+                self.plt.init_iso_surface()
+            else:
+                self.vol.mode(5)
+            self.plt.render()
+
+    @Qt.pyqtSlot()
+    def onClick_slice(self):
+        if self.volume_path is not None and self.plt.slice_mode != True:
+            if self.vol.mode() == 5:
+                self.plt.quit_iso_surface()
+            elif self.vol.mode() == 0 or self.vol.mode() == 1:
+                self.plt.quit_ray_cast()
+            self.plt.init_3d_slider()
+            self.plt.w0.value = 0
+            self.plt.alphaslider0 = 0
+            self.plt.w1.value = 0
+            self.plt.alphaslider1 = 0
+            self.plt.w2.value = 0
+            self.plt.alphaslider2 = 0
+            self.plt.setOTF()
+            self.plt.render()
 
     @Qt.pyqtSlot()
     def onClick_masks(self):
         if self.volume_path is not None:
             self.update_mask()
+
+    @Qt.pyqtSlot()
+    def onClick_clean(self):
+        if self.volume_path is not None:
+            self.plt.quit_ray_cast()
+            self.plt.quit_iso_surface()
 
     def openAboutDialog(self):
         about_text = """

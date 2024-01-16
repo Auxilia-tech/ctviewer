@@ -179,7 +179,7 @@ def draw_bboxes(draw, objects, labels, obj_categories, ignore, width, label_size
                     # TODO: Implement notification message as popup window
                     font = ImageFont.load_default()
 
-                tw, th = draw.textsize(text, font)
+                tw, th = textsize(text, font)
                 tx0 = b[0]
                 ty0 = b[1] - th
 
@@ -868,6 +868,12 @@ class Controller:
 
 def print_info(message: str):
     logging.info(message)
+
+def textsize(text, font):
+    im = Image.new(mode="P", size=(0, 0))
+    draw = ImageDraw.Draw(im)
+    _, _, width, height = draw.textbbox((0, 0), text=text, font=font)
+    return width, height
 
 
 def main():
