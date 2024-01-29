@@ -1,8 +1,10 @@
-from vedo import Plotter, np, build_lut
+import vedo
+from vedo import Volume, Plotter, np, build_lut
 from vedo.pyplot import CornerHistogram
 from vedo.colors import get_color
 from vedo.utils import mag
-import vedo
+
+from utils import EXT
 
 
 class CustomPlotter(Plotter):
@@ -270,3 +272,24 @@ class CustomPlotter(Plotter):
             self.opacityTransferFunction.AddPoint(self.x0alpha, self.alphaslider0)
             self.opacityTransferFunction.AddPoint(self.x1alpha, self.alphaslider1)
             self.opacityTransferFunction.AddPoint(self.x2alpha, self.alphaslider2)
+
+
+def load_volume(volume_path: str, first_load: bool, volume: Volume = None):
+    """
+    Load volume from path.
+    """
+    if not first_load:
+        volume._update(Volume(np.load(volume_path)).dataset) if EXT == 'npy' else volume._update(
+            Volume(volume_path).dataset)
+    else:
+        return Volume(np.load(volume_path), spacing=(1.00000, 1.00000, 0.96200)) if EXT == 'npy' else Volume(volume_path)
+
+
+def load_mask(loaded_mask: Volume, mask_files, loaded_mask_id):
+    """
+    Load mask from path.
+    """
+    if loaded_mask is None:
+        return Volume(mask_files[loaded_mask_id]).origin((0, 0, 0))
+    else:
+        loaded_mask._update(Volume(mask_files[loaded_mask_id]).dataset)
