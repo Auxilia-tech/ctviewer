@@ -1,10 +1,9 @@
 import sys
 
 from PyQt5 import QtWidgets, QtGui
-from vedo import Volume
 
-from utils.renderer import CustomPlotter
-from utils.viewer import Ui_MainWindow
+from utils import CustomPlotter, load_volume, load_mask
+from utils import Ui_MainWindow
 
 
 class MainWindow(Ui_MainWindow):
@@ -19,9 +18,9 @@ class MainWindow(Ui_MainWindow):
 
     def update_volume(self):
         if not self.first_load:
-            self.vol._update(Volume(self.volume_path).dataset)
+            load_volume(self.volume_path, self.first_load, self.vol)
         else:
-            self.vol = Volume(self.volume_path)
+            self.vol = load_volume(self.volume_path, self.first_load)
 
         # Apply color mapping
             self.ogb = [(0, [244, 102, 27]), (self.ogb_cmap[0], [244, 102, 27]), (self.ogb_cmap[1],
@@ -42,10 +41,10 @@ class MainWindow(Ui_MainWindow):
             if self.loaded_mask_id >= len(self.mask_files):
                 self.remove_mask()
             elif self.loaded_mask is None:
-                self.loaded_mask = Volume(self.mask_files[self.loaded_mask_id]).origin((0, 0, 0))
+                self.loaded_mask = load_mask(self.loaded_mask, self.mask_files, self.loaded_mask_id)
                 self.plt.add(self.loaded_mask.color('red'))
             else:
-                self.loaded_mask._update(Volume(self.mask_files[self.loaded_mask_id]).dataset)
+                load_mask(self.loaded_mask, self.mask_files, self.loaded_mask_id)
             self.update_text_button_masks()
             self.plt.render()
 
