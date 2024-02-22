@@ -134,14 +134,19 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         # Add an About action
         self.about_action = QtWidgets.QAction('About', self)
         self.about_action.triggered.connect(self.openAboutDialog)
+        self.website_action = QtWidgets.QAction('Learn more', self)
+        self.website_action.triggered.connect(self.openWebsite)
+        
         self.help_menu.addAction(self.about_action)
+        self.help_menu.addAction(self.website_action)
 
         MainWindow.setMenuBar(self.menubar)
 
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
         MainWindow.setStatusBar(self.statusbar)
 
-        MainWindow.setWindowTitle(_translate("Auxilia 3D viewer", "Auxilia 3D viewer", None))
+        MainWindow.setWindowTitle(_translate(
+            "Auxilia 3D viewer", "Auxilia 3D viewer", None))
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
         self.vtkWidget1 = QVTKRenderWindowInteractor(self)
@@ -241,23 +246,34 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 self.treeView.setRootIndex(self.fileSystemModel.index(self.data_path))
             else:
                 self.showEmptyFolderPopup()
+        
+    def refreshTreeView(self):
+        """Refresh the file system view based on the current directory and file extension."""
+        self.data_path = '../datasets/' if os.path.exists(
+            '../datasets/') else str(ROOT)
+        self.fileSystemModel.setRootPath(self.data_path)
+        self.fileSystemModel.setNameFilters([f'*.{self.ext}'])
+        self.fileSystemModel.setNameFilterDisables(False)
+        self.treeView.setRootIndex(self.fileSystemModel.index(self.data_path))
+        self.treeView.dataChanged(QtCore.QModelIndex(), QtCore.QModelIndex())
 
     def showEmptyFolderPopup(self):
         msg = QtWidgets.QMessageBox()
         msg.setIcon(QtWidgets.QMessageBox.Warning)
-        msg.setText(f"No .{EXT} volumes in {self.data_path}")
+        msg.setText(f"No .{self.ext} volumes in {self.data_path}")
         msg.setWindowTitle("Empty Folder Path")
         msg.exec_()
 
     def treeItemClicked(self, index):
         volume_path = self.fileSystemModel.filePath(index)
-        if volume_path.endswith(f".{EXT}"):
+        if volume_path.endswith(f".{self.ext}"):
             self.volume_path = volume_path
             print("Selected Volume:", self.volume_path)
             if self.loaded_mask is not None:
                 self.remove_mask()
             self.update_volume()
-            search_pattern = os.path.join(os.path.dirname(self.volume_path), f'*labelMask.{EXT}')
+            search_pattern = os.path.join(os.path.dirname(
+                self.volume_path), f'*Mask*.{self.ext}')
             self.mask_files = glob.glob(search_pattern)
             print(f"{len(self.mask_files)} masks found")
             self.update_color_button_masks()
@@ -265,7 +281,6 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
     # Méthode pour ouvrir la fenêtre de réglages
     def openSettingsDialog(self):
-        self.settingsDialog = SettingsDialog(self)
         self.settingsDialog.show()
 
     def update_color_button_masks(self):
@@ -292,14 +307,14 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 self.plt.init_ray_cast(0)
             else:
                 self.vol.mode(0)
-            self.plt.w0.value = 0.1
-            self.plt.alphaslider0 = 0.1
-            self.plt.w1.value = 0.7
-            self.plt.alphaslider1 = 0.7
+            self.plt.w0.value = 0.4
+            self.plt.alphaslider0 = 0.4
+            self.plt.w1.value = 0.65
+            self.plt.alphaslider1 = 0.65
             self.plt.w2.value = 1
             self.plt.alphaslider2 = 1
-            self.plt.render()
             self.plt.setOTF()
+            self.plt.render()
 
     @Qt.pyqtSlot()
     def onClick_mode_1(self):
@@ -312,14 +327,14 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 self.plt.init_ray_cast(1)
             else:
                 self.vol.mode(1)
-            self.plt.w0.value = 1
-            self.plt.alphaslider0 = 1
-            self.plt.w1.value = 0.7
-            self.plt.alphaslider1 = 0.7
-            self.plt.w2.value = 1
-            self.plt.alphaslider2 = 1
-            self.plt.render()
+            self.plt.w0.value = 0.55
+            self.plt.alphaslider0 = 0.55
+            self.plt.w1.value = 0.75
+            self.plt.alphaslider1 = 0.75
+            self.plt.w2.value = 0.9
+            self.plt.alphaslider2 = 0.9
             self.plt.setOTF()
+            self.plt.render()
 
     @Qt.pyqtSlot()
     def onClick_iso(self):
@@ -455,6 +470,10 @@ Copyright © 2023 AUXILIA. All rights reserved.
 For more information or to provide feedback, please contact us at auxilia-tech.com
         """
         QtWidgets.QMessageBox.about(self, "About Viewer", about_text)
+    
+    def openWebsite(self):
+        url = QtCore.QUrl("https://auxilia-tech.com")
+        QtGui.QDesktopServices.openUrl(url)
 
 
 class SettingsDialog(QtWidgets.QDialog):
