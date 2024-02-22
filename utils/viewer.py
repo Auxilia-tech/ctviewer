@@ -326,8 +326,90 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
     @Qt.pyqtSlot()
     def onClick_clean(self):
         if self.volume_path is not None:
-            self.plt.quit_ray_cast()
-            self.plt.quit_iso_surface()
+            self.remove_mask()
+            self.update_text_button_masks()
+            if self.plt.slice_mode != True:
+                if self.vol.mode() == 5:
+                    self.plt.quit_iso_surface()
+                elif self.vol.mode() == 0 or self.vol.mode() == 1:
+                    self.plt.quit_ray_cast()
+            else:
+                self.plt.quit_3d_slider()
+            self.plt.remove(self.vol)
+            self.volume_path = None
+            self.first_load = True
+            self.plt.clear(deep=True)
+            self.plt.setOTF()
+            self.plt.render()
+
+    @Qt.pyqtSlot()
+    def onClick_axes(self):
+        if self.volume_path is not None:
+            i = self.plt.renderers.index(self.plt.renderer)
+            try:
+                self.plt.axes_instances[i].EnabledOff()
+                self.plt.axes_instances[i].SetInteractor(None)
+            except AttributeError:
+                try:
+                    self.plt.remove(self.plt.axes_instances[i])
+                except:
+                    print("Cannot remove axes", [self.plt.axes_instances[i]])
+                    return
+            if self.plt.axes == 13:
+                    self.plt.axes = 0
+            else:
+                self.plt.axes += 1
+            axes_count_text = f"Axes\n[ {self.plt.axes} / {14} ]"
+            self.axes_button.setText(axes_count_text)
+            self.plt.axes_instances[i] = None
+            self.plt.axes_render()
+            self.plt.render()
+    
+    @Qt.pyqtSlot()
+    def onClick_apparence(self):
+        if self.volume_path is not None:
+            if self.apparence_button.text() == "Light mode":
+                self.plt.change_background('white', 'white')
+                self.apparence_button.setText(f"Dark mode")
+            else:
+                self.plt.change_background('black', 'blackboard')
+                self.apparence_button.setText(f"Light mode")
+            self.plt.render()
+    
+    def onClick_shorcuts(self):
+        msg = (
+                "    i     : print info about the last clicked object     \n"
+                "    I     : print color of the pixel under the mouse     \n"
+                "    Y     : show the pipeline for this object as a graph \n"
+                "    <- -> : use arrows to reduce/increase opacity        \n"
+                "    x     : toggle mesh visibility                       \n"
+                "    w     : toggle wireframe/surface style               \n"
+                "    l     : toggle surface edges visibility              \n"
+                "    p/P   : hide surface faces and show only points      \n"
+                "    1-3   : cycle surface color (2=light, 3=dark)        \n"
+                "    4     : cycle color map (press shift-4 to go back)   \n"
+                "    5-6   : cycle point-cell arrays (shift to go back)   \n"
+                "    7-8   : cycle background and gradient color          \n"
+                "    09+-  : cycle axes styles (on keypad, or press +/-)  \n"
+                "    k     : cycle available lighting styles              \n"
+                "    K     : toggle shading as flat or phong              \n"
+                "    A     : toggle anti-aliasing                         \n"
+                "    D     : toggle depth-peeling (for transparencies)    \n"
+                "    U     : toggle perspective/parallel projection       \n"
+                "    o/O   : toggle extra light to scene and rotate it    \n"
+                "    a     : toggle interaction to Actor Mode             \n"
+                "    n     : toggle surface normals                       \n"
+                "    r     : reset camera position                        \n"
+                "    R     : reset camera to the closest orthogonal view  \n"
+                "    .     : fly camera to the last clicked point         \n"
+                "    C     : print the current camera parameters state    \n"
+                "    X     : invoke a cutter widget tool                  \n"
+                "    S     : save a screenshot of the current scene       \n"
+                "    E/F   : export 3D scene to numpy file or X3D         \n"
+                "    q     : return control to python script              \n"
+                "    Esc   : abort execution and exit python kernel         "
+            )
+        QtWidgets.QMessageBox.about(self, "Keybord shorcuts", msg)
 
     def openAboutDialog(self):
         about_text = """
