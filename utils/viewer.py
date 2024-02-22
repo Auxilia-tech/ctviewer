@@ -345,37 +345,144 @@ For more information or to provide feedback, please contact us at auxilia-tech.c
 class SettingsDialog(QtWidgets.QDialog):
     def __init__(self, parent=None):
         super(SettingsDialog, self).__init__(parent)
+
+        self.config_manager = ConfigManager()
+        self.user_config = self.config_manager.get_user_config()
+
         self.setWindowTitle('Settings')
         self.setGeometry(100, 100, 300, 200)
-
         self.layout = QtWidgets.QVBoxLayout(self)
 
-        # Ajouter des champs pour les réglages
-        self.variable1_edit = QtWidgets.QLineEdit(self)
-        self.variable1_edit.setText(str(parent.ogb_cmap[0]))  # Utiliser la valeur actuelle
-        self.layout.addWidget(self.variable1_edit)
+        # Load current user settings or defaults if not set
+        colors = self.user_config.get('colors')
+        ogb_cmap = self.user_config.get('ogb_cmap')
+        alpha_weights = self.user_config.get('alpha_weights')
+        ext = self.user_config.get('ext', 'mhd')
+        mask_classes = self.user_config.get('mask_classes')
 
-        self.variable2_edit = QtWidgets.QLineEdit(self)
-        self.variable2_edit.setText(str(parent.ogb_cmap[1]))  # Utiliser la valeur actuelle
-        self.layout.addWidget(self.variable2_edit)
+        self.ogb_cmap1_edit = QtWidgets.QLineEdit(self)
+        self.ogb_cmap1_edit.setText(str(ogb_cmap[0]))
+        self.layout.addWidget(self.ogb_cmap1_edit)
 
-        self.variable3_edit = QtWidgets.QLineEdit(self)
-        self.variable3_edit.setText(str(parent.ogb_cmap[2]))  # Utiliser la valeur actuelle
-        self.layout.addWidget(self.variable3_edit)
+        self.ogb_cmap2_edit = QtWidgets.QLineEdit(self)
+        self.ogb_cmap2_edit.setText(str(ogb_cmap[1]))
+        self.layout.addWidget(self.ogb_cmap2_edit)
 
-        # Ajouter un bouton OK
-        self.okButton = QtWidgets.QPushButton('OK', self)
+        self.ogb_cmap3_edit = QtWidgets.QLineEdit(self)
+        self.ogb_cmap3_edit.setText(str(ogb_cmap[2]))
+        self.layout.addWidget(self.ogb_cmap3_edit)
+
+        self.alpha1_edit = QtWidgets.QLineEdit(self)
+        self.alpha1_edit.setText(str(alpha_weights[0]))
+        self.layout.addWidget(self.alpha1_edit)
+
+        self.alpha2_edit = QtWidgets.QLineEdit(self)
+        self.alpha2_edit.setText(str(alpha_weights[1]))
+        self.layout.addWidget(self.alpha2_edit)
+
+        self.alpha3_edit = QtWidgets.QLineEdit(self)
+        self.alpha3_edit.setText(str(alpha_weights[2]))
+        self.layout.addWidget(self.alpha3_edit)
+
+        self.ext_edit = QtWidgets.QLineEdit(self)
+        self.ext_edit.setText(str(ext))
+        self.layout.addWidget(self.ext_edit)
+
+        self.resetButton = QtWidgets.QPushButton('Reset', self)
+        self.resetButton.clicked.connect(self.reset_settings)
+        self.layout.addWidget(self.resetButton)
+
+        self.okButton = QtWidgets.QPushButton('Apply', self)
         self.okButton.clicked.connect(lambda: self.updateSettings(parent))
         self.layout.addWidget(self.okButton)
 
-    # Méthode pour mettre à jour les réglages
+        # Update the user settings
+        parent.colors = colors
+        parent.ogb_cmap = ogb_cmap
+        parent.ogb = [(ogb_cmap[0], colors[0]), (ogb_cmap[1],
+                                                 colors[1]), (ogb_cmap[2], colors[2])]
+        parent.alpha = [(0, 1), (ogb_cmap[0], alpha_weights[0]),
+                        (ogb_cmap[1], alpha_weights[1]), (ogb_cmap[2], alpha_weights[2])]
+        parent.ext = ext
+        parent.mask_classes = mask_classes
+
     def updateSettings(self, parent):
-        parent.ogb_cmap[0] = int(self.variable1_edit.text())
-        parent.ogb_cmap[1] = int(self.variable2_edit.text())
-        parent.ogb_cmap[2] = int(self.variable3_edit.text())
-        parent.vol.color([(parent.ogb_cmap[0], (244, 102, 27)), (parent.ogb_cmap[1], (0, 255, 0)),
-                          (parent.ogb_cmap[2], (0, 0, 127))])
-        parent.vol.alpha([(parent.ogb_cmap[0], 1), (parent.ogb_cmap[1], 0.7), (parent.ogb_cmap[2], 0.7)])
-        parent.plt.setOTF()
-        parent.plt.render()
+        # Update the user settings based on the dialog input
+        self.user_config['ogb_cmap'] = [
+            int(self.ogb_cmap1_edit.text()),
+            int(self.ogb_cmap2_edit.text()),
+            int(self.ogb_cmap3_edit.text())
+        ]
+        self.user_config['alpha_weights'] = [
+            float(self.alpha1_edit.text()),
+            float(self.alpha2_edit.text()),
+            float(self.alpha3_edit.text())
+        ]
+        self.user_config['ext'] = str(self.ext_edit.text())
+
+        # Get the value of the user settings
+        ogb_cmap = self.user_config['ogb_cmap']
+        alpha_weights = self.user_config['alpha_weights']
+        colors = self.user_config['colors']
+        ext = self.user_config['ext']
+
+        # Update the volume color and alpha settings
+        if parent.volume_path is not None:
+            parent.vol.color([(ogb_cmap[0], colors[0]), (ogb_cmap[1], colors[1]),
+                              (ogb_cmap[2], colors[2])])
+            parent.vol.alpha([(ogb_cmap[0], alpha_weights[0]), (ogb_cmap[1],
+                             alpha_weights[1]), (ogb_cmap[2], alpha_weights[2])])
+            parent.ext = ext
+            parent.plt.setOTF()
+            parent.plt.render()
+        self.config_manager.save_user_config(self.user_config)
+        parent.refreshTreeView()
         self.close()
+
+    def reset_settings(self):
+        self.config_manager.reset_user_config()
+        self.user_config = self.config_manager.get_user_config()
+
+        # Load current user settings or defaults if not set
+        ogb_cmap = self.user_config.get('ogb_cmap')
+        alpha_weights = self.user_config.get('alpha_weights')
+        ext = self.user_config.get('ext')
+
+        # Update the panel settings
+        self.ogb_cmap1_edit.setText(str(ogb_cmap[0]))
+        self.ogb_cmap2_edit.setText(str(ogb_cmap[1]))
+        self.ogb_cmap3_edit.setText(str(ogb_cmap[2]))
+        self.alpha1_edit.setText(str(alpha_weights[0]))
+        self.alpha2_edit.setText(str(alpha_weights[1]))
+        self.alpha3_edit.setText(str(alpha_weights[2]))
+        self.ext_edit.setText(str(ext))
+
+
+class ConfigManager:
+    def __init__(self, config_file='config.json'):
+        self.config_file = Path(config_file)
+        self.config = self.load_config()
+
+    def load_config(self):
+        """Load the .json configuration file."""
+        if self.config_file.exists():
+            with open(self.config_file, 'r') as f:
+                return json.load(f)
+        else:
+            # Initialize with an empty structure or predefined defaults
+            return {"default": {}, "user": {}}
+
+    def save_user_config(self, user_config):
+        """Save the updated user configuration."""
+        self.config['user'] = user_config
+        with open(self.config_file, 'w') as f:
+            json.dump(self.config, f, indent=4)
+
+    def reset_user_config(self):
+        """Reset user config to the default values."""
+        self.config['user'] = self.config['default'].copy()
+        self.save_user_config(self.config['user'])
+
+    def get_user_config(self):
+        """Get the current user configuration."""
+        return self.config['user']

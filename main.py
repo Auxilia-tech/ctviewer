@@ -12,24 +12,18 @@ class MainWindow(Ui_MainWindow):
         Ui_MainWindow.__init__(self, parent)
         self.setupUi(self)
 
-        # Set OGB color map
-        self.ogb_cmap = [int(2600), int(3600), int(5500)]
-        self.alpha = [(0, 1), (self.ogb_cmap[0], 1), (self.ogb_cmap[1], 0.7), (self.ogb_cmap[2], 0.7)]
-
     def update_volume(self):
         if not self.first_load:
-            load_volume(self.volume_path, self.first_load, self.vol)
+            load_volume(self.volume_path, self.first_load, self.vol, ext=self.ext)
         else:
-            self.vol = load_volume(self.volume_path, self.first_load)
+            self.vol = load_volume(self.volume_path, self.first_load, ext=self.ext)
 
-        # Apply color mapping
-            self.ogb = [(0, [244, 102, 27]), (self.ogb_cmap[0], [244, 102, 27]), (self.ogb_cmap[1],
-                                                                                  [0, 255, 0]), (self.ogb_cmap[2], [0, 0, 127])]
+            # Apply color mapping from user settings
             self.vol.color(self.ogb)
 
             self.vol.alpha(self.alpha)
             self.plt = CustomPlotter(self.vol, bg='white', bg2='white', ogb=self.ogb, alpha=self.alpha, isovalue=1350,
-                                     axes=7, qt_widget=self.vtkWidget1)
+                                     axes=7, qt_widget=self.vtkWidget1, mask_classes=self.mask_classes)
             self.plt.show(viewup="z")
 
         self.first_load = False
@@ -41,10 +35,12 @@ class MainWindow(Ui_MainWindow):
             if self.loaded_mask_id >= len(self.mask_files):
                 self.remove_mask()
             elif self.loaded_mask is None:
-                self.loaded_mask = load_mask(self.loaded_mask, self.mask_files, self.loaded_mask_id)
-                self.plt.add(self.loaded_mask.color('red'))
+                self.loaded_mask = load_mask(self.loaded_mask, self.mask_files, self.loaded_mask_id, ext=self.ext)
+                self.loaded_mask.color(self.plt.mask_colors, alpha=self.plt.mask_alpha).mode(1)
+                self.plt.add_legend(self.loaded_mask)
+                self.plt.add(self.loaded_mask)
             else:
-                load_mask(self.loaded_mask, self.mask_files, self.loaded_mask_id)
+                load_mask(self.loaded_mask, self.mask_files, self.loaded_mask_id, ext=self.ext)
             self.update_text_button_masks()
             self.plt.render()
 

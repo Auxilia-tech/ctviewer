@@ -4,9 +4,6 @@ from vedo.pyplot import CornerHistogram
 from vedo.colors import get_color
 from vedo.utils import mag
 
-from utils import EXT
-
-
 class CustomPlotter(Plotter):
     """
     Generate Volume rendering using ray casting.
@@ -66,9 +63,9 @@ class CustomPlotter(Plotter):
             vedo.logger.error("RayCastPlotter: not enough z slices.")
             raise RuntimeError
         self.smin, self.smax = img.GetScalarRange()
-        self.x0alpha = self.smin + (self.smax - self.smin) * 0.25
-        self.x1alpha = self.smin + (self.smax - self.smin) * 0.5
-        self.x2alpha = self.smin + (self.smax - self.smin) * 1.0
+        self.x0alpha = self.ogb[0][0] # self.smin + (self.smax - self.smin) * 0.25
+        self.x1alpha = self.ogb[1][0] # self.smin + (self.smax - self.smin) * 0.5
+        self.x2alpha = self.ogb[2][0] # self.smin + (self.smax - self.smin) * 1.0
         self.setOTF()
 
         def sliderA0(widget, event):
@@ -84,13 +81,18 @@ class CustomPlotter(Plotter):
             self.setOTF()
         # alpha sliders
         self.w0 = self.add_slider(sliderA0, 0, 1, value=self.alphaslider0, pos=[
-            (0.8, 0.1), (0.8, 0.26)], c=self.csl, show_value=0)
+            (0.8, 0.1), (0.8, 0.26)], c=self.ogb[0][1], show_value=0)
         self.w1 = self.add_slider(sliderA1, 0, 1, value=self.alphaslider1, pos=[
-            (0.85, 0.1), (0.85, 0.26)], c=self.csl, show_value=0)
+            (0.85, 0.1), (0.85, 0.26)], c=self.ogb[1][1], show_value=0)
         self.w2 = self.add_slider(sliderA2, 0, 1, value=self.alphaslider2, pos=[
-            (0.90, 0.1), (0.90, 0.26)], c=self.csl, show_value=0, title="Opacity levels")
+            (0.90, 0.1), (0.90, 0.26)], c=self.ogb[2][1], show_value=0, title="Opacity levels", title_size=0.7)
+        
+        for w in [self.w0, self.w1, self.w2]:
+            w.GetSliderRepresentation().GetSliderProperty().SetOpacity(0.8)
+            w.GetSliderRepresentation().GetTubeProperty().SetOpacity(0.2)
+        
         # add histogram of scalar
-        self.plot = CornerHistogram(self.volume, bins=25, logscale=1, c=(0.7, 0.7, 0.7), bg=(
+        self.plot = CornerHistogram(self.volume, bins=20, logscale=1, c=(0.7, 0.7, 0.7), bg=(
             0.7, 0.7, 0.7), pos=(0.76, 0.065), lines=True, dots=False, nmax=3.1415e06)
         self.plot.GetPosition2Coordinate().SetValue(0.197, 0.20, 0)
         self.plot.GetXAxisActor2D().SetFontFactor(0.7)
@@ -279,17 +281,18 @@ def load_volume(volume_path: str, first_load: bool, volume: Volume = None):
     Load volume from path.
     """
     if not first_load:
-        volume._update(Volume(np.load(volume_path)).dataset) if EXT == 'npy' else volume._update(
+        volume._update(Volume(np.load(volume_path)).dataset) if ext == 'npy' else volume._update(
             Volume(volume_path).dataset)
     else:
-        return Volume(np.load(volume_path), spacing=(1.00000, 1.00000, 0.96200)) if EXT == 'npy' else Volume(volume_path)
+        return Volume(np.load(volume_path), spacing=(1.00000, 1.00000, 0.96200)) if ext == 'npy' else Volume(volume_path)
 
 
-def load_mask(loaded_mask: Volume, mask_files, loaded_mask_id):
+def load_mask(loaded_mask: Volume, mask_files, loaded_mask_id, ext: str = 'nii.gz'):
     """
     Load mask from path.
     """
     if loaded_mask is None:
-        return Volume(mask_files[loaded_mask_id]).origin((0, 0, 0))
+        return Volume(np.load(mask_files[loaded_mask_id])if ext == 'npy' else mask_files[loaded_mask_id]).origin((0, 0, 0))
     else:
-        loaded_mask._update(Volume(mask_files[loaded_mask_id]).dataset)
+        loaded_mask._update(Volume(np.load(
+            mask_files[loaded_mask_id])if ext == 'npy' else mask_files[loaded_mask_id]).dataset)
