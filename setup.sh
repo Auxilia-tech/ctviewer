@@ -16,7 +16,7 @@ case $OS in
     # Define each command separately
     BUILD_COMMAND='python setup.py bdist_mac'
     INSTALL_CREATE_DMG='npm install -g appdmg'
-    CREATE_DMG_COMMAND='appdmg config.json build/CTViewer.dmg'
+    CREATE_DMG_COMMAND='appdmg setup.json build/CTViewer.dmg'
     ;;
   *) 
     OS='Unknown'
