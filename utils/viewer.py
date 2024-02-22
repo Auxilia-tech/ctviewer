@@ -1,12 +1,13 @@
 import os
 from pathlib import Path
-from PyQt5 import QtCore, QtWidgets, Qt
-from vtkmodules.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 import glob
 import sys
+import json
+
+from PyQt5 import QtCore, QtWidgets, Qt, QtGui
+from vtkmodules.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 
 ROOT = Path(__file__).resolve().parents[2]
-EXT = 'mhd'
 
 try:
     _encoding = QtWidgets.QApplication.UnicodeUTF8
@@ -20,7 +21,11 @@ except AttributeError:
 
 class Ui_MainWindow(QtWidgets.QMainWindow):
 
-    def setupUi(self, MainWindow):
+    def setupUi(self, MainWindow: QtWidgets.QMainWindow):
+
+        # Create settings dialog
+        self.settingsDialog = SettingsDialog(self)
+
         MainWindow.setObjectName("Auxilia Viewer")
         MainWindow.resize(1920, 1080)
 
@@ -45,13 +50,20 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
         # Add a QTreeView to the left side of the main window
         self.treeView = QtWidgets.QTreeView(self.centralwidget)
-        self.treeView.setObjectName(f"treeView of {EXT} volume files")
-        self.treeView.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.treeView.setMaximumWidth(250)  # Set a maximum width for the tree view
+        self.treeView.setObjectName(f"treeView of {self.ext} volume files")
+        self.treeView.setSizePolicy(
+            QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        # Set a maximum width for the tree view
+        self.treeView.setMaximumWidth(300)
 
         # Use a QVBoxLayout for the left side layout
         left_layout = QtWidgets.QVBoxLayout()
+        
+        # Adding refresh button on top of the tree view
+        self.refreshButton = QtWidgets.QPushButton("Refresh")
+        self.refreshButton.clicked.connect(self.refreshTreeView)
         left_layout.addWidget(self.treeView)
+        left_layout.addWidget(self.refreshButton)
 
         # Add the left layout to the main layout
         self.hLayout.addLayout(left_layout)
@@ -59,11 +71,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         # Rest of code...
         self.fileSystemModel = QtWidgets.QFileSystemModel()
         self.treeView.setModel(self.fileSystemModel)
-        self.data_path = '../datasets/' if os.path.exists('../datasets/') else str(ROOT)
-        self.fileSystemModel.setRootPath(self.data_path)
-        self.fileSystemModel.setNameFilters([f'*volume*.{EXT}'])
-        self.fileSystemModel.setNameFilterDisables(False)
-        self.treeView.setRootIndex(self.fileSystemModel.index(self.data_path))
+        self.refreshTreeView()
         self.treeView.clicked.connect(self.treeItemClicked)
 
         # Init variables
@@ -86,27 +94,32 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
         # Action pour créer un nouveau projet/fichier
         new_action = QtWidgets.QAction('New', self)
-        new_action.triggered.connect(self.newFile)  # Vous devrez définir la méthode newFile
+        # Vous devrez définir la méthode newFile
+        new_action.triggered.connect(self.newFile)
         self.file_menu.addAction(new_action)
 
         # Action pour ouvrir un fichier
         open_action = QtWidgets.QAction('Open', self)
-        open_action.triggered.connect(self.openFile)  # Vous devrez définir la méthode openFile
+        # Vous devrez définir la méthode openFile
+        open_action.triggered.connect(self.openFile)
         self.file_menu.addAction(open_action)
 
         # Action pour enregistrer
         save_action = QtWidgets.QAction('Save', self)
-        save_action.triggered.connect(self.saveFile)  # Vous devrez définir la méthode saveFile
+        # Vous devrez définir la méthode saveFile
+        save_action.triggered.connect(self.saveFile)
         self.file_menu.addAction(save_action)
 
         # Action pour enregistrer sous
         save_as_action = QtWidgets.QAction('Save As...', self)
-        save_as_action.triggered.connect(self.saveAsFile)  # Vous devrez définir la méthode saveAsFile
+        # Vous devrez définir la méthode saveAsFile
+        save_as_action.triggered.connect(self.saveAsFile)
         self.file_menu.addAction(save_as_action)
 
         # Action pour quitter l'application
         exit_as_action = QtWidgets.QAction('Exit', self)
-        exit_as_action.triggered.connect(self.exitApp)  # Vous devrez définir la méthode saveAsFile
+        # Vous devrez définir la méthode saveAsFile
+        exit_as_action.triggered.connect(self.exitApp)
         self.file_menu.addAction(exit_as_action)
 
         # Ajouter un menu "Settings"
@@ -135,7 +148,8 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.vtkLayout1.addWidget(self.vtkWidget1)
         # Créer un layout horizontal pour les boutons
         self.buttonsLayout = QtWidgets.QHBoxLayout()
-        self.buttonsLayout.setSpacing(10)  # Ajustez l'espace entre les boutons ici
+        # Ajustez l'espace entre les boutons ici
+        self.buttonsLayout.setSpacing(10)
         # Mode buttons
         self.mode0_button = QtWidgets.QPushButton("Composite")
         self.mode0_button.setToolTip("Change volume Mode to Composite")
@@ -158,14 +172,30 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.slice_button.setFixedSize(100, 60)
 
         self.masks_button = QtWidgets.QPushButton("Masks")
-        self.masks_button.setToolTip("Load masks detected by the X-ray machine")
+        self.masks_button.setToolTip(
+            "Load masks detected by the X-ray machine")
         self.masks_button.clicked.connect(self.onClick_masks)
         self.masks_button.setFixedSize(100, 60)
 
-        self.clean_button = QtWidgets.QPushButton("Clean")
+        self.clean_button = QtWidgets.QPushButton("Clean view")
         self.clean_button.setToolTip("Delete loaded masks and volume")
         self.clean_button.clicked.connect(self.onClick_clean)
         self.clean_button.setFixedSize(100, 60)
+
+        self.axes_button = QtWidgets.QPushButton(f"Axes\n[ {8} / {14} ]")
+        self.axes_button.setToolTip("Change axes mode")
+        self.axes_button.clicked.connect(self.onClick_axes)
+        self.axes_button.setFixedSize(100, 60)
+        
+        self.apparence_button = QtWidgets.QPushButton(f"Dark mode")
+        self.apparence_button.setToolTip("Change apparence mode")
+        self.apparence_button.clicked.connect(self.onClick_apparence)
+        self.apparence_button.setFixedSize(100, 60)
+        
+        self.shorcuts_button = QtWidgets.QPushButton(f"Shorcuts")
+        self.shorcuts_button.setToolTip("Change apparence mode")
+        self.shorcuts_button.clicked.connect(self.onClick_shorcuts)
+        self.shorcuts_button.setFixedSize(100, 60)
 
         # Ajouter les boutons au layout horizontal
         self.buttonsLayout.addWidget(self.mode0_button)
@@ -173,6 +203,10 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.buttonsLayout.addWidget(self.iso_button)
         self.buttonsLayout.addWidget(self.slice_button)
         self.buttonsLayout.addWidget(self.masks_button)
+        self.buttonsLayout.addWidget(self.clean_button)
+        self.buttonsLayout.addWidget(self.axes_button)
+        self.buttonsLayout.addWidget(self.apparence_button)
+        self.buttonsLayout.addWidget(self.shorcuts_button)
 
         # Ajouter un stretch pour aligner les boutons à gauche
         self.buttonsLayout.addStretch()
@@ -198,12 +232,11 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
     def openFolderDialog(self):
         options = QtWidgets.QFileDialog.Options()
-        self.data_path = QtWidgets.QFileDialog.getExistingDirectory(self, f"Select {EXT} data Folder", options=options)
-        if self.data_path:
-            print("Selected Folder:", self.data_path)
-            self.volume_files = [path for path in Path(self.data_path).rglob('*.' + EXT)]
+        self.data_path = QtWidgets.QFileDialog.getExistingDirectory(
+            self, f"Select {self.ext} data Folder", options=options)
+        if hasattr(self, 'data_path') and self.data_path:
+            self.volume_files = [path for path in Path(self.data_path).rglob('*.' + self.ext)]
             if len(self.volume_files) > 0:
-                # Update the file system model with the new root path
                 self.fileSystemModel.setRootPath(self.data_path)
                 self.treeView.setRootIndex(self.fileSystemModel.index(self.data_path))
             else:
