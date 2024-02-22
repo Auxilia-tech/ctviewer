@@ -1,5 +1,5 @@
 import vedo
-from vedo import Volume, Plotter, np, build_lut
+from vedo import addons, Volume, Plotter, np, build_lut
 from vedo.pyplot import CornerHistogram
 from vedo.colors import get_color
 from vedo.utils import mag
@@ -9,28 +9,36 @@ class CustomPlotter(Plotter):
     Generate Volume rendering using ray casting.
     """
 
-    def __init__(self, volume,
+    def __init__(self, 
+                 volume,
                  isovalue=None,
                  ogb=None,
                  alpha=1,
                  delayed=False,
                  sliderpos=4,
+                 mask_classes=None,
                  **kwargs):
 
         super().__init__(**kwargs)
 
         # 3D slider
         self.volume = volume
+        self.ogb = ogb
+        self.mask_classes = mask_classes
+        self.mask_colors = [
+            (val[0], val[1]) for val in mask_classes] if mask_classes is not None else "red"
+        self.mask_alpha = [val[2]
+                           for val in mask_classes] if mask_classes is not None else 0.5
         self.cx, self.cy, self.cz = "dr", "dg", "db"
         self.la, self.ld = 0.7, 0.3  # ambient, diffuse
         self.slice_mode = False
         self.slider_cmap = build_lut(ogb,
-                                     vmin=1200,
-                                     vmax=16000,
+                                     vmin=1024,
+                                     vmax=16384,
                                      below_color='white',
                                      above_color='blue',
                                      nan_color='black',
-                                     interpolate=False,
+                                     interpolate=1,
                                      )
 
         # Iso seufer browser
@@ -38,16 +46,19 @@ class CustomPlotter(Plotter):
         self.isovalue = isovalue
         self.delayed = delayed
         self.sliderpos = sliderpos
+        self.s0 = None
 
         # Ray cast render
         self.ogb = ogb
-        self.alphaslider0 = 1
-        self.alphaslider1 = 0.7
-        self.alphaslider2 = 1
+        self.alphaslider0 = 0.55
+        self.alphaslider1 = 0.75
+        self.alphaslider2 = 0.9
 
         self.csl = (0.9, 0.9, 0.9)
         if sum(get_color(self.renderer.GetBackground())) > 1.5:
             self.csl = (0.1, 0.1, 0.1)
+
+        self.yslider = None
 
         self.add([self.volume])
         self.init_ray_cast()
@@ -140,7 +151,8 @@ class CustomPlotter(Plotter):
         self.render()
 
     def quit_iso_surface(self):
-        self.s0.off()
+        if self.s0 is not None:
+            self.s0.off()
         self.render()
 
     def init_3d_slider(self, clamp=False):
@@ -158,13 +170,14 @@ class CustomPlotter(Plotter):
         self.add(self.box)
 
         if clamp:
-            hdata, edg = np.histogram(self.data, bins=50)
+            hdata, edg = np.histogram(self.data, bins=20)
             logdata = np.log(hdata + 1)
             # mean  of the logscale plot
             meanlog = np.sum(np.multiply(edg[:-1], logdata)) / np.sum(logdata)
             self.rmax = min(self.rmax, meanlog + (meanlog - self.rmin) * 0.9)
             self.rmin = max(self.rmin, meanlog - (self.rmax - meanlog) * 0.9)
-            print(f"scalar range clamped to range: ( {(self.rmin, 3)} {(self.rmax, 3)} ")
+            print(
+                f"scalar range clamped to range: ( {(self.rmin, 3)} {(self.rmax, 3)} ")
         self.cmap_slicer = self.slider_cmap
         self.current_i = None
         self.current_j = int(self.dims[1] / 1.5)
@@ -172,7 +185,8 @@ class CustomPlotter(Plotter):
         self.xslice = None
         self.yslice = None
         self.zslice = None
-        self.yslice = self.volume.yslice(self.current_j).lighting("", self.la, self.ld, 0)
+        self.yslice = self.volume.yslice(
+            self.current_j).lighting("", self.la, self.ld, 0)
         self.yslice.name = "YSlice"
         self.yslice.cmap(self.cmap_slicer, vmin=self.rmin, vmax=self.rmax)
         self.add(self.yslice)
@@ -182,7 +196,8 @@ class CustomPlotter(Plotter):
             if i == self.current_i:
                 return
             self.current_i = i
-            self.xslice = self.volume.xslice(i).lighting("", self.la, self.ld, 0)
+            self.xslice = self.volume.xslice(
+                i).lighting("", self.la, self.ld, 0)
             self.xslice.cmap(self.cmap_slicer, vmin=self.rmin, vmax=self.rmax)
             self.xslice.name = "XSlice"
             self.remove("XSlice")  # removes the old one
@@ -195,7 +210,8 @@ class CustomPlotter(Plotter):
             if j == self.current_j:
                 return
             self.current_j = j
-            self.yslice = self.volume.yslice(j).lighting("", self.la, self.ld, 0)
+            self.yslice = self.volume.yslice(
+                j).lighting("", self.la, self.ld, 0)
             self.yslice.cmap(self.cmap_slicer, vmin=self.rmin, vmax=self.rmax)
             self.yslice.name = "YSlice"
             self.remove("YSlice")
@@ -208,7 +224,8 @@ class CustomPlotter(Plotter):
             if k == self.current_k:
                 return
             self.current_k = k
-            self.zslice = self.volume.zslice(k).lighting("", self.la, self.ld, 0)
+            self.zslice = self.volume.zslice(
+                k).lighting("", self.la, self.ld, 0)
             self.zslice.cmap(self.cmap_slicer, vmin=self.rmin, vmax=self.rmax)
             self.zslice.name = "ZSlice"
             self.remove("ZSlice")
@@ -254,29 +271,52 @@ class CustomPlotter(Plotter):
         self.render()
 
     def quit_3d_slider(self):
-        self.yslider.off()
-        self.xslider.off()
-        self.zslider.off()
-        self.remove("ZSlice")
-        self.remove("YSlice")
-        self.remove("XSlice")
-        self.remove(self.box)
-        self.render()
+        if self.yslider is not None:
+            self.yslider.off()
+            self.xslider.off()
+            self.zslider.off()
+            self.remove("ZSlice")
+            self.remove("YSlice")
+            self.remove("XSlice")
+            self.remove(self.box)
         self.slice_mode = False
+        self.render()
 
     def setOTF(self):
-        if self.volume.mode() == 5:
-            self.opacityTransferFunction.RemoveAllPoints()
-        else:
+        self.opacityTransferFunction.RemoveAllPoints()
+        if self.volume.mode() != 5:
             self.opacityTransferFunction.RemoveAllPoints()
             self.opacityTransferFunction.AddPoint(self.smin, 0.0)
-            self.opacityTransferFunction.AddPoint(self.smin + (self.smax - self.smin) * 0.1, 0.0)
-            self.opacityTransferFunction.AddPoint(self.x0alpha, self.alphaslider0)
-            self.opacityTransferFunction.AddPoint(self.x1alpha, self.alphaslider1)
-            self.opacityTransferFunction.AddPoint(self.x2alpha, self.alphaslider2)
+            self.opacityTransferFunction.AddPoint(
+                self.smin + (self.smax - self.smin) * 0.1, 0.0)
+            self.opacityTransferFunction.AddPoint(
+                self.x0alpha, self.alphaslider0)
+            self.opacityTransferFunction.AddPoint(
+                self.x1alpha, self.alphaslider1)
+            self.opacityTransferFunction.AddPoint(
+                self.x2alpha, self.alphaslider2)
+
+    def axes_render(self):
+            bns = self.renderer.ComputeVisiblePropBounds()
+            addons.add_global_axes(axtype=(self.axes) % 15, c=None, bounds=bns)
+            self.render()
+
+    def add_legend(self, loaded_mask: Volume):
+        loaded_mask.add_scalarbar3d(categories=self.mask_classes,
+                                    title='Mask Legend', 
+                                    title_size=2.5,
+                                    label_size=3)
+        loaded_mask.scalarbar.use_bounds(True)
+        loaded_mask.scalarbar = loaded_mask.scalarbar.clone2d("center-right", size=0.3)
+        
+    def change_background(self, bg, bg2):
+        self.renderer.SetBackground(vedo.get_color(bg))
+        self.renderer.SetBackground2(vedo.get_color(bg2))
+        self.render()
+        
 
 
-def load_volume(volume_path: str, first_load: bool, volume: Volume = None):
+def load_volume(volume_path: str, first_load: bool, volume: Volume = None, ext: str = 'nii.gz'):
     """
     Load volume from path.
     """
