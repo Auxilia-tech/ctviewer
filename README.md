@@ -20,7 +20,7 @@
 
 Download the latest version of CTViewer for your platform:
 
-- **macOS**: [Download](https://drive.google.com/file/d/1KWie9yHMH8ey20_xah76sK8Iuaf6IDbP/view?usp=sharing)
+- **macOS**: [Download](https://drive.google.com/file/d/1ckr-RRclwIbHn7qd3RRDXyP9J4OaAzdp/view?usp=sharing)
 - **Linux**: [Download](#)
 - **Windows**: [Download](#)
 
