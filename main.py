@@ -23,7 +23,7 @@ class MainWindow(Ui_MainWindow):
 
             self.vol.alpha(self.alpha)
             self.plt = CustomPlotter(self.vol, bg='white', bg2='white', ogb=self.ogb, alpha=self.alpha, isovalue=1350,
-                                     axes=7, qt_widget=self.vtkWidget1, mask_classes=self.mask_classes)
+                                     axes=8, qt_widget=self.vtkWidget1, mask_classes=self.mask_classes)
             self.plt.show(viewup="z")
 
         self.first_load = False
