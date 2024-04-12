@@ -307,10 +307,10 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 self.plt.init_ray_cast(0)
             else:
                 self.vol.mode(0)
-            self.plt.w0.value = 0.4
-            self.plt.alphaslider0 = 0.4
-            self.plt.w1.value = 0.65
-            self.plt.alphaslider1 = 0.65
+            self.plt.w0.value = 0.1
+            self.plt.alphaslider0 = 0.1
+            self.plt.w1.value = 0.4
+            self.plt.alphaslider1 = 0.4
             self.plt.w2.value = 1
             self.plt.alphaslider2 = 1
             self.plt.setOTF()
