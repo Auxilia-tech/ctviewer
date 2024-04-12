@@ -38,29 +38,101 @@
             ],
             [
                 1,
-                "gold",
-                2,
-                "Sharp Objects"
+                "red",
+                1,
+                "Firearm"
             ],
             [
                 2,
-                "red",
+                "green",
                 2,
-                "Firing Arms"
+                "Gunpart"
             ],
             [
                 3,
-                "black",
-                2,
-                "Tools"
+                "blue",
+                3,
+                "Ammunition"
             ],
             [
                 4,
+                "yellow",
+                4,
+                "Explosive"
+            ],
+            [
+                5,
+                "purple",
+                5,
+                "Knife"
+            ],
+            [
+                6,
                 "orange",
-                2,
-                "Drones"
-            ]
+                6,
+                "Scissors"
+            ],
+            [
+                7,
+                "pink",
+                7,
+                "Fork"
+            ],
+            [
+                8,
+                "cyan",
+                8,
+                "Pointy"
+            ],
+            [
+                9,
+                "brown",
+                9,
+                "Cutter"
+            ],
+            [
+                10,
+                "grey",
+                10,
+                "Screwdriver"
+            ],
+            [
+                11,
+                "black",
+                11,
+                "Saw"
+            ],
+            [
+                12,
+                "red",
+                12,
+                "Hammer"
+            ],
+            [
+                13,
+                "green",
+                13,
+                "Plier"
+            ],
+            [
+                14,
+                "blue",
+                14,
+                "Wrench"
+            ],
+            [
+                15,
+                "yellow",
+                15,
+                "Axe"
+            ],
+            [
+                16,
+                "purple",
+                16,
+                "Corkscrew"
         ]
+    ]
     },
     "user": {
         "title": "Auxilia Viewer",
@@ -91,7 +163,7 @@
                 127
             ]
         ],
-        "ext": "mhd",
+        "ext": "nii.gz",
         "mask_classes": [
             [
                 0,
@@ -101,28 +173,100 @@
             ],
             [
                 1,
-                "gold",
-                2,
-                "Sharp Objects"
+                "red",
+                1,
+                "Firearm"
             ],
             [
                 2,
-                "red",
+                "green",
                 2,
-                "Firing Arms"
+                "Gunpart"
             ],
             [
                 3,
-                "black",
-                2,
-                "Tools"
+                "blue",
+                3,
+                "Ammunition"
             ],
             [
                 4,
+                "yellow",
+                4,
+                "Explosive"
+            ],
+            [
+                5,
+                "purple",
+                5,
+                "Knife"
+            ],
+            [
+                6,
                 "orange",
-                2,
-                "Drones"
-            ]
+                6,
+                "Scissors"
+            ],
+            [
+                7,
+                "pink",
+                7,
+                "Fork"
+            ],
+            [
+                8,
+                "cyan",
+                8,
+                "Pointy"
+            ],
+            [
+                9,
+                "brown",
+                9,
+                "Cutter"
+            ],
+            [
+                10,
+                "grey",
+                10,
+                "Screwdriver"
+            ],
+            [
+                11,
+                "black",
+                11,
+                "Saw"
+            ],
+            [
+                12,
+                "red",
+                12,
+                "Hammer"
+            ],
+            [
+                13,
+                "green",
+                13,
+                "Plier"
+            ],
+            [
+                14,
+                "blue",
+                14,
+                "Wrench"
+            ],
+            [
+                15,
+                "yellow",
+                15,
+                "Axe"
+            ],
+            [
+                16,
+                "purple",
+                16,
+                "Corkscrew"
         ]
+    ]
     }
 }

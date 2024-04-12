@@ -1,8 +1,10 @@
 import vedo
-from vedo import addons, Volume, Plotter, np, build_lut
+from vedo import addons, Volume, Plotter, Flagpost, np, build_lut
 from vedo.pyplot import CornerHistogram
 from vedo.colors import get_color
 from vedo.utils import mag
+
+from scipy.ndimage import label
 
 class CustomPlotter(Plotter):
     """
@@ -29,6 +31,8 @@ class CustomPlotter(Plotter):
             (val[0], val[1]) for val in mask_classes] if mask_classes is not None else "red"
         self.mask_alpha = [val[2]
                            for val in mask_classes] if mask_classes is not None else 0.5
+        # Create dictionary to store the mask classes and their flags from config file
+        self.mask_flags = {val[0]: val[3] for val in mask_classes} if mask_classes is not None else None
         self.cx, self.cy, self.cz = "dr", "dg", "db"
         self.la, self.ld = 0.7, 0.3  # ambient, diffuse
         self.slice_mode = False
@@ -312,6 +316,63 @@ class CustomPlotter(Plotter):
     def change_background(self, bg, bg2):
         self.renderer.SetBackground(vedo.get_color(bg))
         self.renderer.SetBackground2(vedo.get_color(bg2))
+        self.render()
+        
+    def remove_mask(self, parent=None):
+        self.remove(parent.loaded_mask)
+        parent.loaded_mask = None
+        parent.loaded_mask_id = None
+        self.remove_flags()
+        self.render()
+        
+    def add_flags(self, volume:Volume, reshape_factor=3, offset=(0, 0, 60)):
+        """
+        Get the classes and their flags
+        
+        Parameters
+        ----------
+        volume : np.ndarray
+            The volume to process
+        reshape_factor : int
+            The factor to reshape the volume by
+
+        Returns
+        -------
+        dict
+            A dictionary containing the classes and their flags
+            
+        """
+        self.fss = []
+        
+        vol = volume.copy().tonumpy()[::reshape_factor, ::reshape_factor, ::reshape_factor]
+        vol[:] = Volume(vol).dilate((2*reshape_factor, 2*reshape_factor, 2*reshape_factor)).erode((reshape_factor, reshape_factor, reshape_factor)).tonumpy()
+        
+        # Iterate over each class present in the volume
+        for class_label in np.unique(vol):
+            if class_label == 0:  # Assuming 0 is the background class and should be ignored
+                continue
+                
+            # Create a binary mask for the current class
+            class_mask = (vol == class_label)
+            
+            # Identify connected components/objects for the class
+            labeled_array, num_features = label(class_mask, structure=np.ones((3, 3, 3)))
+            
+            for object_label in range(1, num_features + 1):
+                # Find the bounding box for each object
+                object_mask = (labeled_array == object_label)
+                object_positions = np.argwhere(object_mask)
+                
+                highest_point = object_positions[object_positions[:, 2].argmax()].astype(int)*reshape_factor-reshape_factor
+                
+                fs = Flagpost(base=highest_point, top=np.array(highest_point) + np.array(offset), txt=self.mask_flags.get(class_label), s=0.7, c="gray", bc="k9", alpha=1, lw=3, font="SmartCouric")
+                self.fss.append(fs)
+        
+        self.add(self.fss)
+        self.render()
+    
+    def remove_flags(self):
+        self.remove(self.fss)
         self.render()
         
 
