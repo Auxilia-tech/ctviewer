@@ -1,8 +1,10 @@
 import vedo
-from vedo import addons, Volume, Plotter, np, build_lut
+from vedo import addons, Volume, Plotter, Box, Cube, Flagpost, np, build_lut
 from vedo.pyplot import CornerHistogram
 from vedo.colors import get_color
 from vedo.utils import mag
+
+import cc3d
 
 class CustomPlotter(Plotter):
     """
@@ -29,6 +31,8 @@ class CustomPlotter(Plotter):
             (val[0], val[1]) for val in mask_classes] if mask_classes is not None else "red"
         self.mask_alpha = [val[2]
                            for val in mask_classes] if mask_classes is not None else 0.5
+        # Create dictionary to store the mask classes and their flags from config file
+        self.mask_flags = {val[0]: val[3] for val in mask_classes} if mask_classes is not None else None
         self.cx, self.cy, self.cz = "dr", "dg", "db"
         self.la, self.ld = 0.7, 0.3  # ambient, diffuse
         self.slice_mode = False
@@ -312,6 +316,61 @@ class CustomPlotter(Plotter):
     def change_background(self, bg, bg2):
         self.renderer.SetBackground(vedo.get_color(bg))
         self.renderer.SetBackground2(vedo.get_color(bg2))
+        self.render()
+        
+    def remove_mask(self, parent=None):
+        self.remove(parent.loaded_mask)
+        parent.loaded_mask = None
+        parent.loaded_mask_id = None
+        self.remove_flags()
+        self.render()
+        
+    def add_flags(self, volume:Volume, reshape_factor=4, offset=(0, 0, 60)):
+        """
+        Get the classes and their flags
+        
+        Parameters
+        ----------
+        volume : np.ndarray
+            The volume to process
+        reshape_factor : int
+            The factor to reshape the volume by
+
+        Returns
+        -------
+        dict
+            A dictionary containing the classes and their flags
+            
+        """
+        self.fss = []
+        self.bboxes = []
+        self.cubes = []
+        
+        vol = volume.copy().tonumpy()[::reshape_factor, ::reshape_factor, ::reshape_factor]
+        vol[:] = Volume(vol).dilate((2*reshape_factor, 2*reshape_factor, 2*reshape_factor)).erode((reshape_factor, reshape_factor, reshape_factor)).tonumpy()
+        labels_out, N = cc3d.connected_components(vol, connectivity=26, return_N=True)
+        stats = cc3d.statistics(labels_out)
+        print("Number of objects in the volume:", N)
+        for centroid, bounding_boxe, each_label in zip(stats['centroids'][1:], stats['bounding_boxes'][1:], cc3d.each(labels_out, binary=True, in_place=True)):
+            image = each_label[1]
+            class_label = np.unique(image*vol)
+            print("Class label:", class_label, "flag:", self.mask_flags.get(class_label[1]))
+            pos = np.array([bounding_boxe[0].start, bounding_boxe[0].stop, bounding_boxe[1].start, bounding_boxe[1].stop, bounding_boxe[2].start, bounding_boxe[2].stop])
+            pos = pos*reshape_factor - reshape_factor
+            box = Box(pos=pos, c="black", alpha=0.9).wireframe().lw(2).lighting("off")
+            self.bboxes.append(box)
+            # add the z length of the bounding box to the centroid
+            centroid = centroid * reshape_factor - reshape_factor
+            base = np.array([centroid[0], centroid[1], centroid[2]+((pos[-1]-pos[-2])/2)]).astype(int)
+            fs = Flagpost(base=base, top=base + np.array(offset), txt=self.mask_flags.get(class_label[1]), s=0.7, c="gray", bc="k9", alpha=1, lw=3, font="SmartCouric")
+            self.fss.append(fs)
+        
+        self.add([self.fss, self.bboxes])
+        self.render()
+    
+    def remove_flags(self):
+        self.remove(self.fss)
+        self.remove(self.bboxes)
         self.render()
         
 

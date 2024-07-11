@@ -33,22 +33,16 @@ class MainWindow(Ui_MainWindow):
         if len(self.mask_files) > 0:
             self.loaded_mask_id = 0 if self.loaded_mask_id is None else self.loaded_mask_id + 1
             if self.loaded_mask_id >= len(self.mask_files):
-                self.remove_mask()
+                self.plt.remove_mask(self)
             elif self.loaded_mask is None:
                 self.loaded_mask = load_mask(self.loaded_mask, self.mask_files, self.loaded_mask_id, ext=self.ext)
-                self.loaded_mask.color(self.plt.mask_colors, alpha=self.plt.mask_alpha).mode(1)
-                self.plt.add_legend(self.loaded_mask)
+                self.loaded_mask.color("red").mode(0)
                 self.plt.add(self.loaded_mask)
+                self.plt.add_flags(self.loaded_mask)
             else:
                 load_mask(self.loaded_mask, self.mask_files, self.loaded_mask_id, ext=self.ext)
             self.update_text_button_masks()
             self.plt.render()
-
-    def remove_mask(self):
-        self.plt.remove(self.loaded_mask)
-        self.loaded_mask = None
-        self.loaded_mask_id = None
-        self.plt.render()
 
     def onClose(self):
         self.vtkWidget1.close()

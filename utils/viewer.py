@@ -270,7 +270,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             self.volume_path = volume_path
             print("Selected Volume:", self.volume_path)
             if self.loaded_mask is not None:
-                self.remove_mask()
+                self.plt.remove_mask(self)
             self.update_volume()
             search_pattern = os.path.join(os.path.dirname(
                 self.volume_path), f'*Mask*.{self.ext}')
@@ -307,10 +307,10 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 self.plt.init_ray_cast(0)
             else:
                 self.vol.mode(0)
-            self.plt.w0.value = 0.4
-            self.plt.alphaslider0 = 0.4
-            self.plt.w1.value = 0.65
-            self.plt.alphaslider1 = 0.65
+            self.plt.w0.value = 0.1
+            self.plt.alphaslider0 = 0.1
+            self.plt.w1.value = 0.4
+            self.plt.alphaslider1 = 0.4
             self.plt.w2.value = 1
             self.plt.alphaslider2 = 1
             self.plt.setOTF()
@@ -374,7 +374,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
     @Qt.pyqtSlot()
     def onClick_clean(self):
         if self.volume_path is not None:
-            self.remove_mask()
+            self.plt.remove_mask(self)
             self.update_text_button_masks()
             if self.plt.slice_mode != True:
                 if self.vol.mode() == 5:
