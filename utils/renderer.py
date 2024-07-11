@@ -1,5 +1,5 @@
 import vedo
-from vedo import addons, Volume, Plotter, Box, Cube, Flagpost, np, build_lut
+from vedo import addons, Volume, Plotter, Box, Flagpost, np, build_lut
 from vedo.pyplot import CornerHistogram
 from vedo.colors import get_color
 from vedo.utils import mag
@@ -373,25 +373,40 @@ class CustomPlotter(Plotter):
         self.remove(self.bboxes)
         self.render()
         
+class Renderer:
+            
+    def update_volume(self):
+            if not self.first_load:
+                self.vol._update(Volume(np.load(self.volume_path)).dataset) if self.ext == 'npy' else self.vol._update(
+                Volume(self.volume_path).dataset)
+            else:
+                self.vol = Volume(np.load(self.volume_path), spacing=(1.00000, 1.00000, 0.96200)) if self.ext == 'npy' else Volume(self.volume_path)
 
+                # Apply color mapping from user settings
+                self.vol.color(self.ogb)
 
-def load_volume(volume_path: str, first_load: bool, volume: Volume = None, ext: str = 'nii.gz'):
-    """
-    Load volume from path.
-    """
-    if not first_load:
-        volume._update(Volume(np.load(volume_path)).dataset) if ext == 'npy' else volume._update(
-            Volume(volume_path).dataset)
-    else:
-        return Volume(np.load(volume_path), spacing=(1.00000, 1.00000, 0.96200)) if ext == 'npy' else Volume(volume_path)
+                self.vol.alpha(self.alpha)
+                self.plt = CustomPlotter(self.vol, bg='white', bg2='white', ogb=self.ogb, alpha=self.alpha, isovalue=1350,
+                                        axes=8, qt_widget=self.vtkWidget1, mask_classes=self.mask_classes)
+                self.plt.show(viewup="z")
 
+            self.first_load = False
+            self.plt.render()
 
-def load_mask(loaded_mask: Volume, mask_files, loaded_mask_id, ext: str = 'nii.gz'):
-    """
-    Load mask from path.
-    """
-    if loaded_mask is None:
-        return Volume(np.load(mask_files[loaded_mask_id])if ext == 'npy' else mask_files[loaded_mask_id]).origin((0, 0, 0))
-    else:
-        loaded_mask._update(Volume(np.load(
-            mask_files[loaded_mask_id])if ext == 'npy' else mask_files[loaded_mask_id]).dataset)
+    def update_mask(self):
+        if len(self.mask_files) > 0:
+            self.loaded_mask_id = 0 if self.loaded_mask_id is None else self.loaded_mask_id + 1
+            if self.loaded_mask_id >= len(self.mask_files):
+                self.plt.remove_mask(self)
+            elif self.loaded_mask is None:
+                self.loaded_mask = Volume(np.load(self.mask_files[self.loaded_mask_id]) if self.ext == 'npy' else self.mask_files[self.loaded_mask_id]).origin((0, 0, 0))
+                self.loaded_mask.color("red").mode(0)
+                self.plt.add(self.loaded_mask)
+                self.plt.add_flags(self.loaded_mask)
+            else:
+                self.loaded_mask._update(Volume(np.load(self.mask_files[self.loaded_mask_id]) if self.ext == 'npy' else self.mask_files[self.loaded_mask_id]).dataset)
+            self.update_text_button_masks()
+            self.plt.render()
+
+    def onClose(self):
+        self.vtkWidget1.close()
