@@ -19,7 +19,7 @@ except AttributeError:
         return QtWidgets.QApplication.translate(context, text, disambig)
 
 
-class Ui_MainWindow(QtWidgets.QMainWindow):
+class Viewer(QtWidgets.QMainWindow):
 
     def setupUi(self, MainWindow: QtWidgets.QMainWindow):
 
