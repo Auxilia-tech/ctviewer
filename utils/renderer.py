@@ -1,10 +1,10 @@
 import vedo
-from vedo import addons, Volume, Plotter, Flagpost, np, build_lut
+from vedo import addons, Volume, Plotter, Box, Cube, Flagpost, np, build_lut
 from vedo.pyplot import CornerHistogram
 from vedo.colors import get_color
 from vedo.utils import mag
 
-from scipy.ndimage import label
+import cc3d
 
 class CustomPlotter(Plotter):
     """
@@ -325,7 +325,7 @@ class CustomPlotter(Plotter):
         self.remove_flags()
         self.render()
         
-    def add_flags(self, volume:Volume, reshape_factor=3, offset=(0, 0, 60)):
+    def add_flags(self, volume:Volume, reshape_factor=4, offset=(0, 0, 60)):
         """
         Get the classes and their flags
         
@@ -343,36 +343,34 @@ class CustomPlotter(Plotter):
             
         """
         self.fss = []
+        self.bboxes = []
+        self.cubes = []
         
         vol = volume.copy().tonumpy()[::reshape_factor, ::reshape_factor, ::reshape_factor]
         vol[:] = Volume(vol).dilate((2*reshape_factor, 2*reshape_factor, 2*reshape_factor)).erode((reshape_factor, reshape_factor, reshape_factor)).tonumpy()
+        labels_out, N = cc3d.connected_components(vol, connectivity=26, return_N=True)
+        stats = cc3d.statistics(labels_out)
+        print("Number of objects in the volume:", N)
+        for centroid, bounding_boxe, each_label in zip(stats['centroids'][1:], stats['bounding_boxes'][1:], cc3d.each(labels_out, binary=True, in_place=True)):
+            image = each_label[1]
+            class_label = np.unique(image*vol)
+            print("Class label:", class_label, "flag:", self.mask_flags.get(class_label[1]))
+            pos = np.array([bounding_boxe[0].start, bounding_boxe[0].stop, bounding_boxe[1].start, bounding_boxe[1].stop, bounding_boxe[2].start, bounding_boxe[2].stop])
+            pos = pos*reshape_factor - reshape_factor
+            box = Box(pos=pos, c="black", alpha=0.9).wireframe().lw(2).lighting("off")
+            self.bboxes.append(box)
+            # add the z length of the bounding box to the centroid
+            centroid = centroid * reshape_factor - reshape_factor
+            base = np.array([centroid[0], centroid[1], centroid[2]+((pos[-1]-pos[-2])/2)]).astype(int)
+            fs = Flagpost(base=base, top=base + np.array(offset), txt=self.mask_flags.get(class_label[1]), s=0.7, c="gray", bc="k9", alpha=1, lw=3, font="SmartCouric")
+            self.fss.append(fs)
         
-        # Iterate over each class present in the volume
-        for class_label in np.unique(vol):
-            if class_label == 0:  # Assuming 0 is the background class and should be ignored
-                continue
-                
-            # Create a binary mask for the current class
-            class_mask = (vol == class_label)
-            
-            # Identify connected components/objects for the class
-            labeled_array, num_features = label(class_mask, structure=np.ones((3, 3, 3)))
-            
-            for object_label in range(1, num_features + 1):
-                # Find the bounding box for each object
-                object_mask = (labeled_array == object_label)
-                object_positions = np.argwhere(object_mask)
-                
-                highest_point = object_positions[object_positions[:, 2].argmax()].astype(int)*reshape_factor-reshape_factor
-                
-                fs = Flagpost(base=highest_point, top=np.array(highest_point) + np.array(offset), txt=self.mask_flags.get(class_label), s=0.7, c="gray", bc="k9", alpha=1, lw=3, font="SmartCouric")
-                self.fss.append(fs)
-        
-        self.add(self.fss)
+        self.add([self.fss, self.bboxes])
         self.render()
     
     def remove_flags(self):
         self.remove(self.fss)
+        self.remove(self.bboxes)
         self.render()
         
 

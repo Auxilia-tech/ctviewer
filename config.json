@@ -74,65 +74,59 @@
             ],
             [
                 7,
-                "pink",
-                7,
-                "Fork"
-            ],
-            [
-                8,
                 "cyan",
-                8,
+                7,
                 "Pointy"
             ],
             [
-                9,
+                8,
                 "brown",
-                9,
+                8,
                 "Cutter"
             ],
             [
-                10,
+                9,
                 "grey",
-                10,
+                9,
                 "Screwdriver"
             ],
             [
-                11,
+                10,
                 "black",
-                11,
+                10,
                 "Saw"
             ],
             [
-                12,
+                11,
                 "red",
-                12,
+                11,
                 "Hammer"
             ],
             [
-                13,
+                12,
                 "green",
-                13,
+                12,
                 "Plier"
             ],
             [
-                14,
+                13,
                 "blue",
-                14,
+                13,
                 "Wrench"
             ],
             [
-                15,
+                14,
                 "yellow",
-                15,
+                14,
                 "Axe"
             ],
             [
-                16,
+                15,
                 "purple",
-                16,
+                15,
                 "Corkscrew"
+            ]
         ]
-    ]
     },
     "user": {
         "title": "Auxilia Viewer",
@@ -209,64 +203,58 @@
             ],
             [
                 7,
-                "pink",
-                7,
-                "Fork"
-            ],
-            [
-                8,
                 "cyan",
-                8,
+                7,
                 "Pointy"
             ],
             [
-                9,
+                8,
                 "brown",
-                9,
+                8,
                 "Cutter"
             ],
             [
-                10,
+                9,
                 "grey",
-                10,
+                9,
                 "Screwdriver"
             ],
             [
-                11,
+                10,
                 "black",
-                11,
+                10,
                 "Saw"
             ],
             [
-                12,
+                11,
                 "red",
-                12,
+                11,
                 "Hammer"
             ],
             [
-                13,
+                12,
                 "green",
-                13,
+                12,
                 "Plier"
             ],
             [
-                14,
+                13,
                 "blue",
-                14,
+                13,
                 "Wrench"
             ],
             [
-                15,
+                14,
                 "yellow",
-                15,
+                14,
                 "Axe"
             ],
             [
-                16,
+                15,
                 "purple",
-                16,
+                15,
                 "Corkscrew"
+            ]
         ]
-    ]
     }
 }

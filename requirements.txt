@@ -1,4 +1,4 @@
 vedo>=2024.5.1
 PyQt5
 vtk
-scipy
+connected-components-3d
