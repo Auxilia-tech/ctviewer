@@ -50,7 +50,7 @@ class Viewer(QtWidgets.QMainWindow):
 
         # Add a QTreeView to the left side of the main window
         self.treeView = QtWidgets.QTreeView(self.centralwidget)
-        self.treeView.setObjectName(f"treeView of {self.ext} volume files")
+        self.treeView.setObjectName(f"TreeView of {self.exts} volume files")
         self.treeView.setSizePolicy(
             QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         # Set a maximum width for the tree view
@@ -123,6 +123,12 @@ class Viewer(QtWidgets.QMainWindow):
         self.file_menu.addAction(exit_as_action)
 
         # Ajouter un menu "Settings"
+        self.edit_menu = self.menubar.addMenu('Edit')
+        settings_action = QtWidgets.QAction('Export Web x3d', self)
+        settings_action.triggered.connect(self.exportWebX3D)
+        self.edit_menu.addAction(settings_action)
+
+        # Ajouter un menu "Settings"
         self.settings_menu = self.menubar.addMenu('Settings')
         settings_action = QtWidgets.QAction('Settings', self)
         settings_action.triggered.connect(self.openSettingsDialog)
@@ -136,7 +142,6 @@ class Viewer(QtWidgets.QMainWindow):
         self.about_action.triggered.connect(self.openAboutDialog)
         self.website_action = QtWidgets.QAction('Learn more', self)
         self.website_action.triggered.connect(self.openWebsite)
-        
         self.help_menu.addAction(self.about_action)
         self.help_menu.addAction(self.website_action)
 
@@ -238,37 +243,45 @@ class Viewer(QtWidgets.QMainWindow):
     def openFolderDialog(self):
         options = QtWidgets.QFileDialog.Options()
         self.data_path = QtWidgets.QFileDialog.getExistingDirectory(
-            self, f"Select {self.ext} data Folder", options=options)
+            self, f"Select {self.exts} data Folder", options=options)
         if hasattr(self, 'data_path') and self.data_path:
-            self.volume_files = [path for path in Path(self.data_path).rglob('*.' + self.ext)]
+            self.volume_files = [path for ext in self.exts for path in Path(self.data_path).rglob('*.' + ext)]
             if len(self.volume_files) > 0:
                 self.fileSystemModel.setRootPath(self.data_path)
                 self.treeView.setRootIndex(self.fileSystemModel.index(self.data_path))
             else:
-                self.showEmptyFolderPopup()
+                self.showPopup("Warning", "Empty Folder Path", f"No .{self.exts} volumes in {self.data_path}")
         
     def refreshTreeView(self):
         """Refresh the file system view based on the current directory and file extension."""
         self.data_path = '../datasets/' if os.path.exists(
             '../datasets/') else str(ROOT)
         self.fileSystemModel.setRootPath(self.data_path)
-        self.fileSystemModel.setNameFilters([f'*.{self.ext}'])
+        self.fileSystemModel.setNameFilters([f"*.{ext}" for ext in self.exts])
         self.fileSystemModel.setNameFilterDisables(False)
         self.treeView.setRootIndex(self.fileSystemModel.index(self.data_path))
         self.treeView.dataChanged(QtCore.QModelIndex(), QtCore.QModelIndex())
 
-    def showEmptyFolderPopup(self):
+    def showPopup(self, type, title, message):
+        """
+        Show a popup message box with the given title and message.
+        :param type: The type of the message box (about, Info, Warning, critical)
+        
+        """
         msg = QtWidgets.QMessageBox()
-        msg.setIcon(QtWidgets.QMessageBox.Warning)
-        msg.setText(f"No .{self.ext} volumes in {self.data_path}")
-        msg.setWindowTitle("Empty Folder Path")
+        icon_type = getattr(QtWidgets.QMessageBox, type)
+        msg.setIcon(icon_type)
+        msg.setText(message)
+        msg.setWindowTitle(title)
         msg.exec_()
 
     def treeItemClicked(self, index):
         volume_path = self.fileSystemModel.filePath(index)
-        if volume_path.endswith(f".{self.ext}"):
+        if volume_path.endswith(tuple(self.exts)):
             self.volume_path = volume_path
             print("Selected Volume:", self.volume_path)
+            # get the extension of the volume file (pay attention to nii.gz there is a dot)
+            self.ext = "nii.gz" if self.volume_path.endswith("nii.gz") else self.volume_path.split(".")[-1]
             if self.loaded_mask is not None:
                 self.plt.remove_mask(self)
             self.update_volume()
@@ -461,11 +474,11 @@ class Viewer(QtWidgets.QMainWindow):
 
     def openAboutDialog(self):
         about_text = """
-Viewer Version 1.1
+Viewer Version 1.0
 
-This application is designed and developed by AUXILIA-TECH for efficient and effective 3D visualization of X-ray security data. It offers a range of features designed to help professionals gain insights and make informed decisions.
+This application is designed and developed by AUXILIA for efficient and effective 3D visualization of X-ray security data. It offers a range of features designed to help professionals gain insights and make informed decisions.
 
-Copyright © 2023 AUXILIA. All rights reserved.
+Copyright © 2024 AUXILIA. All rights reserved.
 
 For more information or to provide feedback, please contact us at auxilia-tech.com
         """
@@ -491,7 +504,7 @@ class SettingsDialog(QtWidgets.QDialog):
         colors = self.user_config.get('colors')
         ogb_cmap = self.user_config.get('ogb_cmap')
         alpha_weights = self.user_config.get('alpha_weights')
-        ext = self.user_config.get('ext', 'mhd')
+        exts = self.user_config.get('exts', ['dcs', 'dcm', 'nii.gz', "mhd"])
         mask_classes = self.user_config.get('mask_classes')
 
         self.ogb_cmap1_edit = QtWidgets.QLineEdit(self)
@@ -518,9 +531,14 @@ class SettingsDialog(QtWidgets.QDialog):
         self.alpha3_edit.setText(str(alpha_weights[2]))
         self.layout.addWidget(self.alpha3_edit)
 
-        self.ext_edit = QtWidgets.QLineEdit(self)
-        self.ext_edit.setText(str(ext))
-        self.layout.addWidget(self.ext_edit)
+        # add a checkbox list for extenstions that can be loaded and save them in self to be used in updateSettings
+        # Add a vertival layout for the checkboxes
+        self.exts_layout = QtWidgets.QVBoxLayout()
+        for ext in exts:
+            checkbox = QtWidgets.QCheckBox(ext, self)
+            checkbox.setChecked(True)
+            self.exts_layout.addWidget(checkbox)
+        self.layout.addLayout(self.exts_layout)
 
         self.resetButton = QtWidgets.QPushButton('Reset', self)
         self.resetButton.clicked.connect(self.reset_settings)
@@ -537,7 +555,7 @@ class SettingsDialog(QtWidgets.QDialog):
                                                  colors[1]), (ogb_cmap[2], colors[2])]
         parent.alpha = [(0, 1), (ogb_cmap[0], alpha_weights[0]),
                         (ogb_cmap[1], alpha_weights[1]), (ogb_cmap[2], alpha_weights[2])]
-        parent.ext = ext
+        parent.exts = exts
         parent.mask_classes = mask_classes
 
     def updateSettings(self, parent):
@@ -552,13 +570,14 @@ class SettingsDialog(QtWidgets.QDialog):
             float(self.alpha2_edit.text()),
             float(self.alpha3_edit.text())
         ]
-        self.user_config['ext'] = str(self.ext_edit.text())
+        # get the extensions that are checked in the exts_layout
+        self.user_config['exts'] = [self.exts_layout.itemAt(i).widget().text() for i in range(self.exts_layout.count()) if self.exts_layout.itemAt(i).widget().isChecked()]
 
         # Get the value of the user settings
         ogb_cmap = self.user_config['ogb_cmap']
         alpha_weights = self.user_config['alpha_weights']
         colors = self.user_config['colors']
-        ext = self.user_config['ext']
+        exts = self.user_config['exts']
 
         # Update the volume color and alpha settings
         if parent.volume_path is not None:
@@ -566,7 +585,7 @@ class SettingsDialog(QtWidgets.QDialog):
                               (ogb_cmap[2], colors[2])])
             parent.vol.alpha([(ogb_cmap[0], alpha_weights[0]), (ogb_cmap[1],
                              alpha_weights[1]), (ogb_cmap[2], alpha_weights[2])])
-            parent.ext = ext
+            parent.exts = exts
             parent.plt.setOTF()
             parent.plt.render()
         self.config_manager.save_user_config(self.user_config)
@@ -580,7 +599,7 @@ class SettingsDialog(QtWidgets.QDialog):
         # Load current user settings or defaults if not set
         ogb_cmap = self.user_config.get('ogb_cmap')
         alpha_weights = self.user_config.get('alpha_weights')
-        ext = self.user_config.get('ext')
+        exts = self.user_config.get('exts')
 
         # Update the panel settings
         self.ogb_cmap1_edit.setText(str(ogb_cmap[0]))
@@ -589,7 +608,11 @@ class SettingsDialog(QtWidgets.QDialog):
         self.alpha1_edit.setText(str(alpha_weights[0]))
         self.alpha2_edit.setText(str(alpha_weights[1]))
         self.alpha3_edit.setText(str(alpha_weights[2]))
-        self.ext_edit.setText(str(ext))
+        self.exts_layout = QtWidgets.QVBoxLayout()
+        for ext in exts:
+            checkbox = QtWidgets.QCheckBox(ext, self)
+            checkbox.setChecked(True)
+            self.exts_layout.addWidget(checkbox)
 
 
 class ConfigManager:

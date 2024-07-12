@@ -1,5 +1,5 @@
 import vedo
-from vedo import addons, Volume, Plotter, Box, Flagpost, np, build_lut
+from vedo import addons, Volume, Plotter, Box, Flagpost, np, build_lut, Text3D
 from vedo.pyplot import CornerHistogram
 from vedo.colors import get_color
 from vedo.utils import mag
@@ -27,8 +27,8 @@ class CustomPlotter(Plotter):
         self.volume = volume
         self.ogb = ogb
         self.mask_classes = mask_classes
-        self.mask_colors = [
-            (val[0], val[1]) for val in mask_classes] if mask_classes is not None else "red"
+        # self.mask_colors = [
+        #     (val[0], val[1]) for val in mask_classes] if mask_classes is not None else "red"
         self.mask_alpha = [val[2]
                            for val in mask_classes] if mask_classes is not None else 0.5
         # Create dictionary to store the mask classes and their flags from config file
@@ -304,14 +304,6 @@ class CustomPlotter(Plotter):
             bns = self.renderer.ComputeVisiblePropBounds()
             addons.add_global_axes(axtype=(self.axes) % 15, c=None, bounds=bns)
             self.render()
-
-    def add_legend(self, loaded_mask: Volume):
-        loaded_mask.add_scalarbar3d(categories=self.mask_classes,
-                                    title='Mask Legend', 
-                                    title_size=2.5,
-                                    label_size=3)
-        loaded_mask.scalarbar.use_bounds(True)
-        loaded_mask.scalarbar = loaded_mask.scalarbar.clone2d("center-right", size=0.3)
         
     def change_background(self, bg, bg2):
         self.renderer.SetBackground(vedo.get_color(bg))
@@ -344,17 +336,14 @@ class CustomPlotter(Plotter):
         """
         self.fss = []
         self.bboxes = []
-        self.cubes = []
-        
-        vol = volume.copy().tonumpy()[::reshape_factor, ::reshape_factor, ::reshape_factor]
-        vol[:] = Volume(vol).dilate((2*reshape_factor, 2*reshape_factor, 2*reshape_factor)).erode((reshape_factor, reshape_factor, reshape_factor)).tonumpy()
+        volume.dilate((2*reshape_factor, 2*reshape_factor, 2*reshape_factor)).erode((reshape_factor, reshape_factor, reshape_factor))
+        vol = volume.tonumpy()[::reshape_factor, ::reshape_factor, ::reshape_factor]
         labels_out, N = cc3d.connected_components(vol, connectivity=26, return_N=True)
         stats = cc3d.statistics(labels_out)
         print("Number of objects in the volume:", N)
         for centroid, bounding_boxe, each_label in zip(stats['centroids'][1:], stats['bounding_boxes'][1:], cc3d.each(labels_out, binary=True, in_place=True)):
             image = each_label[1]
             class_label = np.unique(image*vol)
-            print("Class label:", class_label, "flag:", self.mask_flags.get(class_label[1]))
             pos = np.array([bounding_boxe[0].start, bounding_boxe[0].stop, bounding_boxe[1].start, bounding_boxe[1].stop, bounding_boxe[2].start, bounding_boxe[2].stop])
             pos = pos*reshape_factor - reshape_factor
             box = Box(pos=pos, c="black", alpha=0.9).wireframe().lw(2).lighting("off")
@@ -374,14 +363,43 @@ class CustomPlotter(Plotter):
         self.render()
         
 class Renderer:
-            
-    def update_volume(self):
-            if not self.first_load:
-                self.vol._update(Volume(np.load(self.volume_path)).dataset) if self.ext == 'npy' else self.vol._update(
-                Volume(self.volume_path).dataset)
-            else:
-                self.vol = Volume(np.load(self.volume_path), spacing=(1.00000, 1.00000, 0.96200)) if self.ext == 'npy' else Volume(self.volume_path)
 
+    def load_volume(self):
+        if not self.first_load:
+            if self.ext == 'npy':
+                self.vol._update(Volume(np.load(self.volume_path)).dataset)
+            if self.ext == 'nii.gz' or self.ext == 'mhd' or self.ext == 'dcm':
+                self.vol._update(Volume(self.volume_path).dataset)
+            if self.ext == 'dcs':
+                self.vol._update(Volume(self.load_dicos_ct()).dataset)
+        else:
+            if self.ext == 'npy':
+                self.vol = Volume(np.load(self.volume_path))
+            if self.ext == 'nii.gz' or self.ext == 'mhd' or self.ext == 'dcm':
+                self.vol = Volume(self.volume_path)
+            if self.ext == 'dcs':
+                self.vol = Volume(self.load_dicos_ct())
+
+    def load_mask(self):
+        if self.mask_files is not None:
+            if self.ext == 'npy':
+                self.loaded_mask = Volume(np.load(self.mask_files[self.loaded_mask_id]))
+            if self.ext == 'nii.gz' or self.ext == 'mhd' or self.ext == 'dcm':
+                self.loaded_mask = Volume(self.mask_files[self.loaded_mask_id])
+            if self.ext == 'dcs':
+                self.loaded_mask = Volume(self.load_dicos_tdr())
+
+        else:
+            if self.ext == 'npy':
+                self.loaded_mask._update(Volume(np.load(self.mask_files[self.loaded_mask_id])).dataset)
+            if self.ext == 'nii.gz' or self.ext == 'mhd' or self.ext == 'dcm':
+                self.loaded_mask._update(Volume(self.mask_files[self.loaded_mask_id]).dataset)
+            if self.ext == 'dcs':
+                self.loaded_mask._update(Volume(self.load_dicos_tdr()).dataset)
+        
+    def update_volume(self):
+            self.load_volume()
+            if self.first_load:
                 # Apply color mapping from user settings
                 self.vol.color(self.ogb)
 
@@ -399,14 +417,33 @@ class Renderer:
             if self.loaded_mask_id >= len(self.mask_files):
                 self.plt.remove_mask(self)
             elif self.loaded_mask is None:
-                self.loaded_mask = Volume(np.load(self.mask_files[self.loaded_mask_id]) if self.ext == 'npy' else self.mask_files[self.loaded_mask_id]).origin((0, 0, 0))
-                self.loaded_mask.color("red").mode(0)
+                self.load_mask()
+                self.loaded_mask.alpha(self.plt.mask_alpha).mode(0).color("red")
                 self.plt.add(self.loaded_mask)
-                self.plt.add_flags(self.loaded_mask)
+                self.plt.add_flags(self.loaded_mask.copy(), reshape_factor=4, offset=(0, 0, 60))
             else:
-                self.loaded_mask._update(Volume(np.load(self.mask_files[self.loaded_mask_id]) if self.ext == 'npy' else self.mask_files[self.loaded_mask_id]).dataset)
+                self.load_mask()
             self.update_text_button_masks()
             self.plt.render()
 
     def onClose(self):
         self.vtkWidget1.close()
+
+    def load_dicos_ct(self):
+        print ("Loading DICOM CT files from ", self.volume_path)
+
+    def load_dicos_tdr(self):
+        print ("Loading DICOS TDR files from ", self.mask_files[self.loaded_mask_id])
+
+    def exportWebX3D(self):
+        if self.volume_path is not None and self.loaded_mask is not None:
+            # Prepare the mask for export
+            plt = Plotter(size=(600, 600), bg='GhostWhite')
+            mesh_mask = self.loaded_mask.isosurface().decimate(0.7).color('red').alpha(self.plt.mask_alpha)
+            txt = Text3D("Auxilia Web CTViewer", font='Bongas', s=30, c='black', depth=0.05)
+            plt.show(mesh_mask, self.plt.bboxes, self.plt.fss, txt, txt.box(padding=20), axes=1, viewup='z', zoom=1.2)
+            plt.export('/tmp/tdr.x3d')
+            plt.clear()
+            plt.close()
+        else:
+            self.showPopup("Warning", "Export Error", "Please load both the volume and mask before exporting.")
