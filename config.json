@@ -28,7 +28,13 @@
                 127
             ]
         ],
-        "exts": ["nii.gz", "mhd", "dcm", "dcs", "npy"],
+        "exts": [
+            "nii.gz",
+            "mhd",
+            "dcm",
+            "dcs",
+            "npy"
+        ],
         "mask_classes": [
             [
                 0,
@@ -105,7 +111,7 @@
             [
                 12,
                 "green",
-                12,
+                1,
                 "Plier"
             ],
             [
@@ -157,7 +163,13 @@
                 127
             ]
         ],
-        "exts": ["nii.gz", "mhd", "dcm", "dcs", "npy"],
+        "exts": [
+            "nii.gz",
+            "mhd",
+            "dcm",
+            "dcs",
+            "npy"
+        ],
         "mask_classes": [
             [
                 0,
@@ -234,7 +246,7 @@
             [
                 12,
                 "green",
-                12,
+                1,
                 "Plier"
             ],
             [

@@ -1,0 +1,109 @@
+from vedo import Volume
+from vedo.pyplot import CornerHistogram
+from ctviewer.rendering.callbacks import RendererCallbacks
+
+class RayCaster():
+    def __init__(self, volume:Volume, ogb, alpha, callbacks:RendererCallbacks):
+        self.volume = volume
+        self.ogb = ogb
+        self.alpha = alpha
+        self.callbacks = callbacks
+        self.alphasliders_mode_0 = [0.1, 0.4, 1.0]
+        self.alphasliders_mode_1 = [0.55, 0.75, 0.9]
+        self.on = False
+    
+    def build(self, volume_mode):
+        # Create transfer mapping scalar value to opacity
+        self.opacityTransferFunction = self.volume.properties.GetScalarOpacity()
+        if self.volume.dimensions()[2] < 3:
+            raise RuntimeError("RayCastPlotter: not enough z slices.")
+        
+        self.update_mode(volume_mode)
+        
+        def sliderA0(widget, event):
+            self.alphaslider0 = widget.GetRepresentation().GetValue()
+            self.setOTF()
+        def sliderA1(widget, event):
+            self.alphaslider1 = widget.GetRepresentation().GetValue()
+            self.setOTF()
+        def sliderA2(widget, event):
+            self.alphaslider2 = widget.GetRepresentation().GetValue()
+            self.setOTF()
+
+        # alpha sliders
+        self.w0 = self.callbacks.add_slider(sliderA0, 0, 1, value=self.alphaslider0, pos=[
+            (0.8, 0.1), (0.8, 0.26)], c=self.ogb[0][1], show_value=0)
+        self.w1 = self.callbacks.add_slider(sliderA1, 0, 1, value=self.alphaslider1, pos=[
+            (0.85, 0.1), (0.85, 0.26)], c=self.ogb[1][1], show_value=0)
+        self.w2 = self.callbacks.add_slider(sliderA2, 0, 1, value=self.alphaslider2, pos=[
+            (0.90, 0.1), (0.90, 0.26)], c=self.ogb[2][1], show_value=0, title="Opacity levels", title_size=0.7)
+        
+        for w in [self.w0, self.w1, self.w2]:
+            w.GetSliderRepresentation().GetSliderProperty().SetOpacity(0.8)
+            w.GetSliderRepresentation().GetTubeProperty().SetOpacity(0.2)
+        
+        # CornerHistogram -> vtki.new("XYPlotActor")
+        self.hist = CornerHistogram(self.volume, logscale=1, 
+                                    c=(0.7, 0.7, 0.7), bg=(0.7, 0.7, 0.7), 
+                                    pos=(0.76, 0.065), nmax=3.1415e06)
+        self.hist.GetPosition2Coordinate().SetValue(0.197, 0.20, 0)
+        self.hist.GetXAxisActor2D().SetFontFactor(0.7)
+        self.hist.GetProperty().SetOpacity(0.5)
+        self.setOTF()
+        self.on = True
+
+    def setOTF(self):
+        self.opacityTransferFunction.RemoveAllPoints()
+        self.smin, self.smax = self.volume.dataset.GetScalarRange()
+        self.opacityTransferFunction.AddPoint(self.smin, 0.0)
+        self.opacityTransferFunction.AddPoint(self.smin + (self.smax - self.smin) * 0.1, 0.0)
+        self.opacityTransferFunction.AddPoint(self.ogb[0][0], self.alphaslider0)
+        self.opacityTransferFunction.AddPoint(self.ogb[1][0], self.alphaslider1)
+        self.opacityTransferFunction.AddPoint(self.ogb[2][0], self.alphaslider2)
+
+    def update_mode(self, volume_mode:int):
+        self.volume_mode = volume_mode
+        self.volume.mode(volume_mode)
+        self.volume.alpha(self.alpha)
+        self.update_sliders()
+        self.setOTF()
+
+    def update_sliders(self, values=None):
+        if values is None:
+            self.alphaslider0, self.alphaslider1, self.alphaslider2 = self.alphasliders_mode_0 if self.volume_mode == 0 else self.alphasliders_mode_1
+        else:
+            self.alphaslider0, self.alphaslider1, self.alphaslider2 = values
+        if hasattr(self, 'w0'):
+            self.w0.value, self.w1.value, self.w2.value = self.alphaslider0, self.alphaslider1, self.alphaslider2
+
+    def get_modules(self):
+        return [self.hist, self.w0, self.w1, self.w2]
+    
+    def get_addons(self):
+        return [self.hist]
+    
+    def get_sliders(self):
+        return [self.w0, self.w1, self.w2]
+    
+    def activate(self, volume_mode:int=1):
+        if hasattr(self, 'opacityTransferFunction') and not self.on:
+            for m in self.get_sliders():
+                m.on()
+            self.update_mode(volume_mode)
+            self.on = True
+        elif not hasattr(self, 'opacityTransferFunction'):
+            self.build(volume_mode)
+        else:
+            self.update_mode(volume_mode)
+
+    def deactivate(self):
+        if self.on:
+            for s in self.get_sliders():
+                s.off()
+        self.callbacks.remove(self.get_addons())
+        self.update_sliders((0.0, 0.0, 0.0))
+        self.setOTF()
+        self.on = False
+
+    def is_active(self):
+        return self.on
