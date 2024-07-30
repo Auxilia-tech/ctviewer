@@ -24,8 +24,16 @@ except AttributeError:
 
 
 class MainWindow(QtWidgets.QMainWindow):
+    """
+    The main window of the CTViewer application.
+
+    This class represents the main window of the CTViewer application. It contains various widgets and functionality
+    to display and interact with CT scan data.
+
+    """
 
     def __init__(self):
+        """ Initialize the main window of the CTViewer application. """
         super(MainWindow, self).__init__()
 
         self.setObjectName("Auxilia CTViewer")
@@ -80,8 +88,8 @@ class MainWindow(QtWidgets.QMainWindow):
         # Add a menu "File"
         self.file_menu = self.menubar.addMenu('File')
         self.add_Action_button("Open folder", self.openFolderDialog, self.file_menu)
+        self.add_Action_button("Open file", self.openFileDialog, self.file_menu)
         self.add_Action_button("New", self.newFile, self.file_menu)
-        self.add_Action_button("Open", self.openFile, self.file_menu)
         self.add_Action_button("Save", self.saveFile, self.file_menu)
         self.add_Action_button("Save As...", self.saveAsFile, self.file_menu)
         self.add_Action_button("Exit", self.exitApp, self.file_menu)
@@ -121,6 +129,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.vtkLayout1.addLayout(self.buttonsLayout)
 
     def add_Push_button(self, text:str, tooltip:str, callback_func, layout:QtWidgets.QLayout, size=(100, 60)):
+
         button = QtWidgets.QPushButton(text)
         button.setToolTip(tooltip)
         button.clicked.connect(callback_func)
@@ -130,7 +139,7 @@ class MainWindow(QtWidgets.QMainWindow):
         setattr(self, button_name, button)
             
     
-    def add_Action_button(self, action_name, callback_func, menu:QtWidgets.QMenu):
+    def add_Action_button(self, action_name:str, callback_func, menu:QtWidgets.QMenu):
         action = QtWidgets.QAction(action_name, self)
         action.triggered.connect(callback_func)
         menu.addAction(action)
@@ -138,10 +147,6 @@ class MainWindow(QtWidgets.QMainWindow):
     # Définitions des méthodes pour les actions (à implémenter)
     def newFile(self):
         """ Create a new scene """
-        pass
-
-    def openFile(self):
-        """ Open a file dialog to load a scene """
         pass
 
     def saveFile(self):
@@ -167,6 +172,14 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.treeView.set_folder(self.data_path)
             else:
                 self.showPopup("Warning", "Empty Folder Path", f"No .{exts} volumes in {self.data_path}")
+    
+    def openFileDialog(self):
+        options = QtWidgets.QFileDialog.Options()
+        exts = self.settingsDialog.get_exts() # 'nii', 'nii.gz', 'mha', 'mhd'
+        file_path, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Open volume or mask file", "", f"Volume Files (*.{' *.'.join(exts)})", options=options)
+        if file_path:
+            self.renderer.update_volume(file_path)
+            self.treeView.refreshTreeView()
         
     def showPopup(self, type, title, message):
         msg = QtWidgets.QMessageBox()
@@ -184,12 +197,12 @@ class MainWindow(QtWidgets.QMainWindow):
     
     @Qt.pyqtSlot()
     def onClick_apparence(self):
-        if self.apparence_button.text() == "Light mode":
+        if self.dark_button.text() == "Light mode":
             self.renderer.change_background('white', 'white')
-            self.apparence_button.setText(f"Dark mode")
+            self.dark_button.setText(f"Dark mode")
         else:
             self.renderer.change_background('black', 'blackboard')
-            self.apparence_button.setText(f"Light mode")
+            self.dark_button.setText(f"Light mode")
 
     @Qt.pyqtSlot()
     def OnClick_exportWebX3D(self):

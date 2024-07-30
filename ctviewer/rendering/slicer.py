@@ -1,18 +1,40 @@
+from typing import List
 from vedo import Volume, np, mag, build_lut
 from ctviewer.rendering.callbacks import RendererCallbacks
 
 class Slicer():
-    def __init__(self, volume:Volume, ogb, callbacks:RendererCallbacks):
+    """
+    Generate a rendering window with slicing planes for the input Volume.
+    """
+
+    def __init__(self, volume:Volume, ogb:List, callbacks:RendererCallbacks, clamp:bool=True):
+        """
+        Initialize the slicer with the input volume and callbacks object.
+
+        Parameters
+        ----------
+        volume : Volume
+            The input volume to be sliced.
+        ogb : list
+            Oranges, greens, and blues for the opacity transfer function.
+        callbacks : RendererCallbacks
+            The callbacks object to which the slicer will be attached.
+        clamp : bool, optional
+            Whether to clamp the scalar range to reduce the effect of tails in color mapping.
+        """
+
         self.volume = volume
+        self.callbacks = callbacks
+        self.clamp = clamp
         self.cx, self.cy, self.cz = "dr", "dg", "db" # colors for the sliders
-        self.la, self.ld = 0.7, 0.3  # ambient, diffuse
-        self.clamp = True
+        self.la, self.ld = 0.7, 0.3  # Ambient, Diffuse
+        # Build vtkLookupTable object that can be fed into cmap() method.
         self.slider_cmap = build_lut(ogb, vmin=1024, vmax=16384, below_color='white',
                                      above_color='blue', nan_color='black', interpolate=1)
-        self.callbacks = callbacks
         self.on = False
 
     def build(self):
+        """ Build the slicer with the input volume. Mode 1 by default. """
         self.volume.mode(1)
         self.dims = self.volume.dimensions()
         self.data = self.volume.pointdata[0]
@@ -26,11 +48,10 @@ class Slicer():
         if self.clamp:
             hdata, edg = np.histogram(self.data, bins=20)
             logdata = np.log(hdata + 1)
-            # mean  of the logscale plot
+            # mean of the logscale plot
             meanlog = np.sum(np.multiply(edg[:-1], logdata)) / np.sum(logdata)
             self.rmax = min(self.rmax, meanlog + (meanlog - self.rmin) * 0.9)
             self.rmin = max(self.rmin, meanlog - (self.rmax - meanlog) * 0.9)
-            print(f"scalar range clamped to range: ( {(self.rmin, 3)} {(self.rmax, 3)} ")
         self.cmap_slicer = self.slider_cmap
         self.current_i = None
         self.current_j = int(self.dims[1] / 1.5)
@@ -52,7 +73,7 @@ class Slicer():
             self.xslice = self.volume.xslice(i).lighting("", self.la, self.ld, 0)
             self.xslice.cmap(self.cmap_slicer, vmin=self.rmin, vmax=self.rmax)
             self.xslice.name = "XSlice"
-            self.callbacks.remove("XSlice")  # removes the old one
+            self.callbacks.remove("XSlice")  # Removes the old one
             if 0 < i < self.dims[0]:
                 self.callbacks.add(self.xslice)
             self.callbacks.render()
@@ -120,19 +141,44 @@ class Slicer():
             show_value=False,
         )
     
+    def check_volume(self):
+        """Check if the volume is valid."""
+        if not hasattr(self.volume, "properties"): return False
+        if self.volume.dimensions()[2] < 3: return False
+        return True
+    
     def get_modules(self):
+        """ Get the slicer modules. """
         return [self.yslider, self.xslider, self.zslider]
     
     def get_addons(self):
+        """ Get the slicer addons. """
         return ["ZSlice", "YSlice", "XSlice", self.box]
     
     def get_sliders(self):
+        """ 
+        Get the slicer sliders. 
+        Used for activation and deactivation.
+        """
         return [self.yslider, self.xslider, self.zslider]
     
     def is_active(self):
+        """ Check if the slicer is active. """
         return self.on
     
     def activate(self, clamp=True):
+        """
+        Activate the slicer with the input volume.
+        If the slicer is already active, the sliders will be turned on again.
+        If clamp is set to True, the scalar range will be clamped to reduce the effect of tails in color mapping.
+
+        Parameters
+        ----------
+        clamp : bool, optional
+            Whether to clamp the scalar range to reduce the effect of tails in color
+            mapping. Default is True
+        """
+        if not self.check_volume(): return
         self.clamp = clamp if clamp is not None else self.clamp
         if hasattr(self, "yslider") and not self.on:
             for s in self.get_sliders():
@@ -142,6 +188,7 @@ class Slicer():
         self.on = True
 
     def deactivate(self):
+        """ Deactivate the slicer. """
         for s in self.get_sliders():
             s.off()
         self.callbacks.remove(self.get_addons())

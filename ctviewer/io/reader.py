@@ -2,45 +2,76 @@ from typing import Tuple
 from vedo import Volume, np
 
 from pydicos import dcsread
+from ctviewer.utils.cc_3d import connected_components_3d
 
 # create a new reader class
 class Reader:
-    def __init__(self, *args, **kwargs):
-        pass
+    """
+    A class for reading and processing medical image data.
+
+    Attributes:
+    - properties: A dictionary containing various properties of the volume.
+
+    """
+
+    def __init__(self):
+        """
+        Initializes the reader with default properties.
+
+        """
+        self.properties = {"spacing": (1, 1, 1), "origin": (0, 0, 0), "is_mask": False, "poses": [], "flag_poses": [], "labels": []}
 
     def __call__(self, path: str) -> Tuple[Volume, dict]:
+        """
+        Reads the volume data from the specified path and returns the volume and properties.
+
+        Args:
+        - path: A string representing the path to the volume file.
+
+        Returns:
+        - volume: An instance of the Volume class representing the volume data.
+        - properties: A dictionary containing various properties of the volume.
+
+        """
         ext = "nii.gz" if path.endswith(".nii.gz") else path.split(".")[-1]
-        self.properties = {"spacing": (1, 1, 1), "origin": (0, 0, 0), "is_tdr": False, "poses": [], "flag_poses": [], "labels": []}
         if ext == 'npy':
             data = np.load(path)
-            vol = Volume(data)
+            volume = Volume(data)
+            smin, smax = volume.dataset.GetScalarRange()
+            if smin == 0 and smax < 100: # check if the volume is a mask.
+                self.properties = connected_components_3d(volume, connectivity = 26, reshape_factor = 4)
         elif ext == 'nii.gz' or ext == 'mhd' or ext == 'dcm':
-            vol = Volume(path)
-            self.properties["spacing"] = vol.spacing()
-            self.properties["origin"] = vol.origin()
+            volume = Volume(path)
+            smin, smax = volume.dataset.GetScalarRange()
+            if smin == 0 and smax < 100: # check if the volume is a mask.
+                self.properties = connected_components_3d(volume, connectivity = 26, reshape_factor = 4)
+            else:
+                self.properties["spacing"] = volume.spacing()
+                self.properties["origin"] = volume.origin()
         elif ext == 'dcs':
             data = dcsread(path).get_data()
             if isinstance(data, np.ndarray):
-                vol = Volume(data)
+                volume = Volume(data)
             elif isinstance(data, dict):
-                vol, self.properties = self.Read_TDR_data(data)
-                vol = Volume(vol)
-        return vol, self.properties
+                volume = self.Read_TDR_data(data) 
+                volume = Volume(volume)
+        return volume, self.properties
     
     def Read_TDR_data(self, metadata_dict: dict) -> Tuple[np.ndarray, dict]:
         """
-        Read a TDR file and return the list of PTOs
+        Reads a TDR file and returns the list of PTOs.
+
+        Args:
+        - metadata_dict: A dictionary containing the metadata of the TDR file.
 
         Returns:
-        - bboxes: list of bounding boxes
-        - labels: list of labels
-        - masks: list of binary masks
+        - mask: An ndarray representing the binary mask.
+        - properties: A dictionary containing various properties of the mask.
 
         """
         PTOs = metadata_dict["PTOs"]
         max_dims = [0, 0, 0]
-        self.properties["is_tdr"] = True
-        
+        self.properties["is_mask"] = True
 
         for pto in PTOs:
             assert "Base" in pto and "Extent" in pto, "Base or Extent not found in PTO"
@@ -67,4 +98,4 @@ class Reader:
             print("Warning: No mask found in PTOs")
             mask[0, 0, 0] = 1  # add a dummy mask
 
-        return mask, self.properties
+        return mask

@@ -30,6 +30,12 @@ class SettingsDialog(QtWidgets.QDialog):
     """
 
     def __init__(self, parent=None):
+        """
+        Initialize the settings dialog.
+
+        Args:
+            parent (QWidget): The parent widget.
+        """
         super(SettingsDialog, self).__init__(parent)
 
         self.setWindowTitle('Settings')
