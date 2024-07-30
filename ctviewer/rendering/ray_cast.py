@@ -28,7 +28,7 @@ class RayCaster():
         self.alpha = alpha
         self.callbacks = callbacks
         self.alphasliders_mode_0 = [0.1, 0.4, 1.0]
-        self.alphasliders_mode_1 = [0.55, 0.75, 0.9]
+        self.alphasliders_mode_1 = [0.75, 0.75, 0.9]
         self.on = False
     
     def build(self, volume_mode):

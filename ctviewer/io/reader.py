@@ -99,3 +99,7 @@ class Reader:
             mask[0, 0, 0] = 1  # add a dummy mask
 
         return mask
+        
+    def reset_properties(self):
+        """ Reset the properties to default values. """
+        self.properties = {"spacing": (1, 1, 1), "origin": (0, 0, 0), "is_mask": False, "poses": [], "flag_poses": [], "labels": []}

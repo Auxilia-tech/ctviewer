@@ -153,7 +153,7 @@ class Slicer():
     
     def get_addons(self):
         """ Get the slicer addons. """
-        return ["ZSlice", "YSlice", "XSlice", self.box]
+        return [self.xslice, self.yslice, self.zslice, self.box]
     
     def get_sliders(self):
         """ 
@@ -183,6 +183,7 @@ class Slicer():
         if hasattr(self, "yslider") and not self.on:
             for s in self.get_sliders():
                 s.on()
+            self.callbacks.add(self.get_addons())
         elif not hasattr(self, "yslider"):
             self.build()
         self.on = True

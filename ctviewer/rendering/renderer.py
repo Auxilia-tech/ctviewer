@@ -49,7 +49,6 @@ class Renderer(Plotter):
         self.add([self.volume, self.mask_])
 
         # init variables
-        self.first_load = True
         self.bboxes, self.fss, self.tdr_poses = [], [], []
 
         # Create a reader object
@@ -80,7 +79,7 @@ class Renderer(Plotter):
             self.ray_caster.activate(volume_mode)
             if self.ray_caster.is_active(): # if the ray caster was built successfully
                 self.refresh_axes()
-                self.render()
+            self.render()
 
     def iso_surface_mode(self):
         """ 
@@ -228,10 +227,9 @@ class Renderer(Plotter):
         """
         Remove the flags from the current plot.
         """
-        if len(self.fss) > 0 or len(self.bboxes) > 0:
-            self.remove([self.fss, self.bboxes])
-            self.fss, self.bboxes = [], []
-            self.render()
+        self.remove([self.fss, self.bboxes])
+        self.fss, self.bboxes = [], []
+        self.render()
 
     def update_volume(self, volume_path):
         """
@@ -242,18 +240,20 @@ class Renderer(Plotter):
         volume_path : str
             The path to the new volume
         """
+        self.reader.reset_properties()
         vol, volume_properties = self.reader(volume_path)
         if volume_properties["is_mask"]:
             self.remove_flags()
             self.mask_._update(vol.dataset).alpha([0]+[1]*(len(self.mask_classes)-1)) # keep the background transparent
             self.add_flags(volume_properties)
+            if not self.ray_caster.is_active() and not self.iso_surfer.is_active() and not self.slicer.is_active():
+                self.show(viewup='z')
         else:
             self.volume._update(vol.dataset)
-        if self.ray_caster.is_active() or self.iso_surfer.is_active() or self.slicer.is_active():
-            self.refresh_axes()
-        else:
+        if not self.ray_caster.is_active() and not self.iso_surfer.is_active() and not self.slicer.is_active() :
             self.ray_cast_mode(1)
             self.show(viewup='z')
+        self.refresh_axes()
         self.render()
 
     def exportWeb(self):
