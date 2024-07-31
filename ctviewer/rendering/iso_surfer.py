@@ -1,5 +1,6 @@
 from vedo import Volume
-from ctviewer.rendering.callbacks import RendererCallbacks
+
+from .callbacks import RendererCallbacks
 
 class IsoSurfer():
     """

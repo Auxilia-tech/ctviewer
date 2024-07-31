@@ -1,1 +1,3 @@
-# from ctviewer.io.reader import Reader
+from .reader import Reader
+
+__all__ = ["Reader"]

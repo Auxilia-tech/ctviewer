@@ -1,12 +1,13 @@
 from typing import Tuple, List, Dict
+
 import vedo
 from vedo import Volume, Plotter, Box, Text3D, Flagpost, np, addons
 
-from ctviewer.io.reader import Reader
-from ctviewer.rendering.ray_cast import RayCaster
-from ctviewer.rendering.iso_surface import IsoSurfer
-from ctviewer.rendering.slicer import Slicer
-from ctviewer.rendering.callbacks import RendererCallbacks
+from ctviewer.io import Reader
+from .callbacks import RendererCallbacks
+from .ray_caster import RayCaster
+from .iso_surfer import IsoSurfer
+from .slicer import Slicer
 
 
 class Renderer(Plotter):

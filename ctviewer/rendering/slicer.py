@@ -1,6 +1,9 @@
 from typing import List
-from vedo import Volume, np, mag, build_lut
-from ctviewer.rendering.callbacks import RendererCallbacks
+
+import vedo
+from vedo import Volume, np
+
+from . import RendererCallbacks
 
 class Slicer():
     """
@@ -29,7 +32,7 @@ class Slicer():
         self.cx, self.cy, self.cz = "dr", "dg", "db" # colors for the sliders
         self.la, self.ld = 0.7, 0.3  # Ambient, Diffuse
         # Build vtkLookupTable object that can be fed into cmap() method.
-        self.slider_cmap = build_lut(ogb, vmin=1024, vmax=16384, below_color='white',
+        self.slider_cmap = vedo.build_lut(ogb, vmin=1024, vmax=16384, below_color='white',
                                      above_color='blue', nan_color='black', interpolate=1)
         self.on = False
 
@@ -112,7 +115,7 @@ class Slicer():
             pos2=(bs[1], bs[2], bs[4]),
             xmin=0,
             xmax=self.dims[0],
-            t=self.box.diagonal_size() / mag(self.box.xbounds()) * 0.6,
+            t=self.box.diagonal_size() / vedo.mag(self.box.xbounds()) * 0.6,
             c=self.cx,
             show_value=False,
         )
@@ -124,7 +127,7 @@ class Slicer():
             xmin=0,
             xmax=self.dims[1],
             value=int(self.dims[1] / 1.5),
-            t=self.box.diagonal_size() / mag(self.box.ybounds()) * 0.6,
+            t=self.box.diagonal_size() / vedo.mag(self.box.ybounds()) * 0.6,
             c=self.cy,
             show_value=False,
         )
@@ -135,7 +138,7 @@ class Slicer():
             xmin=0,
             xmax=self.dims[2],
             value=self.dims[2],
-            t=self.box.diagonal_size() / mag(self.box.zbounds()) * 0.6,
+            t=self.box.diagonal_size() / vedo.mag(self.box.zbounds()) * 0.6,
             c=self.cz,
             show_value=False,
         )

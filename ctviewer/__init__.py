@@ -1,6 +1,3 @@
-# from ctviewer.gui import MainWindow
-# from ctviewer.gui import SettingsDialog
-# from ctviewer.rendering import Renderer
-# from ctviewer.io import Reader
+from .gui import MainWindow
 
-# __all__ = ['MainWindow', 'SettingsDialog', 'Renderer', 'Reader']
+__all__ =  ['MainWindow']

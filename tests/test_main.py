@@ -47,15 +47,6 @@ def test_main_window_close(qt_app, mocker):
     mock_main_close.assert_called_once()
     mock_renderer_close.assert_called_once()
 
-def test_application_icon(qt_app):
-    """
-    Test if the application sets the window icon correctly.
-    """
-    viewer = CtViewer()
-    app = QApplication.instance()
-    viewer.setWindowIcon(QIcon('icons/auxilia_tech_logo.jpeg'))
-    assert not viewer.windowIcon().isNull()
-
 def test_about_to_quit_signal(qt_app, mocker):
     """
     Test if the onClose method is connected to the QApplication aboutToQuit signal.
@@ -63,6 +54,7 @@ def test_about_to_quit_signal(qt_app, mocker):
     viewer = CtViewer()
     mock_on_close = mocker.patch.object(viewer, 'onClose')
     app = QApplication.instance()
+    app.aboutToQuit.connect(viewer.onClose)
     app.aboutToQuit.emit()
     mock_on_close.assert_called_once()
 

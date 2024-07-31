@@ -1,8 +1,7 @@
 import os
-from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QTreeView
-from PyQt5 import QtCore
-from PyQt5 import QtWidgets
+
+from PyQt5 import QtWidgets, QtCore
+from PyQt5.QtWidgets import QTreeView, QWidget, QVBoxLayout
 
 class TreeView(QTreeView):
     def __init__(self, centralwidget:QWidget, left_layout:QVBoxLayout, exts:list, update_volume_callback:callable):

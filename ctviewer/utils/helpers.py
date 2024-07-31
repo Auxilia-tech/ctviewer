@@ -1,4 +1,4 @@
-shorcuts_text = (
+SHORCUTS_TEXT = (
                 "    i     : print info about the last clicked object     \n"
                 "    I     : print color of the pixel under the mouse     \n"
                 "    Y     : show the pipeline for this object as a graph \n"
@@ -31,7 +31,7 @@ shorcuts_text = (
                 "    Esc   : abort execution and exit python kernel         "
             )
 
-about_text = """
+ABOUT_TEXT = """
 Viewer Version 1.0
 
 This application is designed and developed by AUXILIA for efficient and effective 3D visualization of X-ray security data. It offers a range of features designed to help professionals gain insights and make informed decisions.

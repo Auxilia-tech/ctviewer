@@ -1,8 +1,8 @@
 import sys
 
-from PyQt5 import QtWidgets, QtGui
+from PyQt5 import QtWidgets
 
-from ctviewer.gui.main_window import MainWindow
+from ctviewer import MainWindow
 
 class CtViewer():
     """
@@ -41,6 +41,5 @@ if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     window = CtViewer()
     app.aboutToQuit.connect(window.onClose)
-    app.setWindowIcon(QtGui.QIcon('icons/auxilia_tech_logo.jpeg'))
     window.show()
     sys.exit(app.exec_())

@@ -1,8 +1,9 @@
 from typing import Tuple
-from vedo import Volume, np
 
+from vedo import Volume, np
 from pydicos import dcsread
-from ctviewer.utils.cc_3d import connected_components_3d
+
+from ctviewer.utils import connected_components_3d
 
 # create a new reader class
 class Reader:

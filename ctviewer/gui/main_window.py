@@ -1,15 +1,12 @@
-import os
 from pathlib import Path
-import glob
-import sys
 
 from PyQt5 import QtCore, QtWidgets, Qt, QtGui
 from vtkmodules.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 
-from ctviewer.rendering.renderer import Renderer
-from ctviewer.gui.setting_dialog import SettingsDialog
-from ctviewer.gui.tree_view import TreeView
-from ctviewer.utils.helpers import shorcuts_text, about_text
+from ctviewer.rendering import Renderer
+from .setting_dialog import SettingDialog
+from .tree_view import TreeView
+from ctviewer.utils import SHORCUTS_TEXT, ABOUT_TEXT
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -43,9 +40,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.resize(1920, 1080)
 
         # Create a settings dialog
-        self.settingsDialog = SettingsDialog(self)
+        self.settingDialog = SettingDialog(self)
         self.vtkWidget1 = QVTKRenderWindowInteractor(self)
-        user_config = self.settingsDialog.get_current_config()
+        user_config = self.settingDialog.get_current_config()
         
         # Create a renderer
         self.renderer = Renderer(**user_config, qt_widget=self.vtkWidget1, isovalue=1350, bg='white', bg2='white', axes=8)
@@ -76,7 +73,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.left_layout = QtWidgets.QVBoxLayout()
 
         # Add a QTreeView to the left side of the main window
-        self.treeView = TreeView(self.centralwidget, self.left_layout, self.settingsDialog.get_exts(), self.renderer.update_volume)
+        self.treeView = TreeView(self.centralwidget, self.left_layout, self.settingDialog.get_exts(), self.renderer.update_volume)
         self.add_Push_button("Refresh", "Refresh the tree view", self.treeView.refreshTreeView, self.left_layout, size=(270, 60))
     
         self.hLayout.addLayout(self.left_layout)
@@ -93,7 +90,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.add_Action_button("New", self.newFile, self.file_menu)
         self.add_Action_button("Save", self.saveFile, self.file_menu)
         self.add_Action_button("Save As...", self.saveAsFile, self.file_menu)
-        self.add_Action_button("Exit", self.exitApp, self.file_menu)
+        self.add_Action_button("Exit", self.onClose(), self.file_menu)
 
         # Add a menu "Edit"
         self.edit_menu = self.menubar.addMenu('Edit')
@@ -101,7 +98,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Add a menu "Settings"
         self.settings_menu = self.menubar.addMenu('Settings')
-        self.add_Action_button("Settings", self.settingsDialog.show, self.settings_menu)
+        self.add_Action_button("Settings", self.settingDialog.show, self.settings_menu)
 
         # Add a menu "Help"
         self.help_menu = self.menubar.addMenu('Help')
@@ -158,13 +155,9 @@ class MainWindow(QtWidgets.QMainWindow):
         """ Save the current scene to a file """
         pass
 
-    def exitApp(self):
-        print("Exit App")
-        self.onClose()
-
     def openFolderDialog(self):
         options = QtWidgets.QFileDialog.Options()
-        exts = self.settingsDialog.get_exts()
+        exts = self.settingDialog.get_exts()
         self.data_path = QtWidgets.QFileDialog.getExistingDirectory(
             self, f"Select {exts} data Folder", options=options)
         if hasattr(self, 'data_path') and self.data_path:
@@ -176,7 +169,7 @@ class MainWindow(QtWidgets.QMainWindow):
     
     def openFileDialog(self):
         options = QtWidgets.QFileDialog.Options()
-        exts = self.settingsDialog.get_exts() # 'nii', 'nii.gz', 'mha', 'mhd'
+        exts = self.settingDialog.get_exts() # 'nii', 'nii.gz', 'mha', 'mhd'
         file_path, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Open volume or mask file", "", f"Volume Files (*.{' *.'.join(exts)})", options=options)
         if file_path:
             self.renderer.update_volume(file_path)
@@ -219,11 +212,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.close()
     
     def onClick_shorcuts(self):
-        QtWidgets.QMessageBox.about(self, "Keybord shorcuts", shorcuts_text)
+        QtWidgets.QMessageBox.about(self, "Keybord shorcuts", SHORCUTS_TEXT)
 
     def openAboutDialog(self):
-        QtWidgets.QMessageBox.about(self, "About Viewer", about_text)
-    
+        QtWidgets.QMessageBox.about(self, "About Viewer", ABOUT_TEXT)
+
     def openWebsite(self):
         url = QtCore.QUrl("https://auxilia-tech.com")
         QtGui.QDesktopServices.openUrl(url)

@@ -1,7 +1,8 @@
 from typing import Tuple
-from vedo import Volume
-from vedo.pyplot import CornerHistogram
-from ctviewer.rendering.callbacks import RendererCallbacks
+
+from vedo import Volume, pyplot
+
+from .callbacks import RendererCallbacks
 
 class RayCaster():
     """
@@ -70,7 +71,7 @@ class RayCaster():
             w.GetSliderRepresentation().GetTubeProperty().SetOpacity(0.2)
         
         # CornerHistogram -> vtki.new("XYPlotActor")
-        self.hist = CornerHistogram(self.volume, logscale=1, 
+        self.hist = pyplot.CornerHistogram(self.volume, logscale=1, 
                                     c=(0.7, 0.7, 0.7), bg=(0.7, 0.7, 0.7), 
                                     pos=(0.76, 0.065), nmax=3.1415e06)
         self.hist.GetPosition2Coordinate().SetValue(0.197, 0.20, 0)

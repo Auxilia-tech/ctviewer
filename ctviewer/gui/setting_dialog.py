@@ -1,7 +1,8 @@
 from PyQt5 import QtWidgets
-from ctviewer.utils.configs import ConfigManager
 
-class SettingsDialog(QtWidgets.QDialog):
+from ctviewer.utils import ConfigManager
+
+class SettingDialog(QtWidgets.QDialog):
     """
     A dialog window for managing settings in the CT Viewer application.
 
@@ -36,7 +37,7 @@ class SettingsDialog(QtWidgets.QDialog):
         Args:
             parent (QWidget): The parent widget.
         """
-        super(SettingsDialog, self).__init__(parent)
+        super(SettingDialog, self).__init__(parent)
 
         self.setWindowTitle('Settings')
         self.setGeometry(100, 100, 300, 200)
