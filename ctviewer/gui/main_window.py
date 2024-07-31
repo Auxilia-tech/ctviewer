@@ -90,7 +90,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.add_Action_button("New", self.newFile, self.file_menu)
         self.add_Action_button("Save", self.saveFile, self.file_menu)
         self.add_Action_button("Save As...", self.saveAsFile, self.file_menu)
-        self.add_Action_button("Exit", self.onClose(), self.file_menu)
+        self.add_Action_button("Exit", self.onClose, self.file_menu)
 
         # Add a menu "Edit"
         self.edit_menu = self.menubar.addMenu('Edit')
