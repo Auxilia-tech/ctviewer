@@ -38,6 +38,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.setObjectName("Auxilia CTViewer")
         self.setWindowTitle(_translate("Auxilia CTViewer", "Auxilia CTViewer", None))
+        self.setWindowIcon(QtGui.QIcon(str(ROOT / "icons" / "logo.png"))  )
         QtCore.QMetaObject.connectSlotsByName(self)
         self.resize(1920, 1080)
 
