@@ -110,12 +110,14 @@ class RayCaster():
 
     def update_sliders(self, values:Tuple[float, float, float]=None):
         """Update the sliders of the ray caster."""
-        if values is None:
-            self.alphaslider0, self.alphaslider1, self.alphaslider2 = self.alphasliders_mode_0 if self.volume_mode == 0 else self.alphasliders_mode_1
-        else:
+        if values:
             self.alphaslider0, self.alphaslider1, self.alphaslider2 = values
+        else:
+            self.alphaslider0, self.alphaslider1, self.alphaslider2 = self.alphasliders_mode_0 if self.volume_mode == 0 else self.alphasliders_mode_1
         if hasattr(self, 'w0'):
             self.w0.value, self.w1.value, self.w2.value = self.alphaslider0, self.alphaslider1, self.alphaslider2
+        
+        self.setOTF()
 
     def check_volume(self):
         """Check if the volume is valid."""
@@ -170,7 +172,6 @@ class RayCaster():
                 s.off()
         self.callbacks.remove(self.get_addons())
         self.update_sliders((0.0, 0.0, 0.0))
-        self.setOTF()
         self.on = False
 
     def is_active(self):

@@ -35,7 +35,6 @@ class Slicer():
 
     def build(self):
         """ Build the slicer with the input volume. Mode 1 by default. """
-        self.volume.mode(1)
         self.dims = self.volume.dimensions()
         self.data = self.volume.pointdata[0]
         self.rmin, self.rmax = self.volume.scalar_range()
@@ -179,6 +178,7 @@ class Slicer():
             mapping. Default is True
         """
         if not self.check_volume(): return
+        self.volume.mode(1)
         self.clamp = clamp if clamp is not None else self.clamp
         if hasattr(self, "yslider") and not self.on:
             for s in self.get_sliders():

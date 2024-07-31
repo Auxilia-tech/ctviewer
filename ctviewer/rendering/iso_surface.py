@@ -40,8 +40,6 @@ class IsoSurfer():
         Important : The mode should be set to 5 for isosurface rendering.
 
         """
-        self.volume.mode(5)
-        self.volume.alpha(1)
         isovals = self.volume.properties.GetIsoSurfaceValues()
         if self.isovalue is None:
             self.isovalue = delta / 3.0 + scrange[0]
@@ -103,6 +101,8 @@ class IsoSurfer():
     def activate(self):
         """Activate the renderer."""
         if not self.check_volume(): return
+        self.volume.mode(5)
+        self.volume.alpha(1)
         if hasattr(self, "s0") and not self.on:
             for s in self.get_sliders():
                 s.on()

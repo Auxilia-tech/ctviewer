@@ -98,6 +98,7 @@ class Renderer(Plotter):
         if self.slicer.is_active():
             return
         self.quit_current_mode()
+        self.ray_caster.update_sliders((0, 0, 0)) # Hide the volume
         self.slicer.activate(clamp)
         self.render()
 
