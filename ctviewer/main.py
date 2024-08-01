@@ -1,6 +1,6 @@
 import sys
 
-from PyQt5 import QtWidgets
+from PyQt6 import QtWidgets
 
 from ctviewer import MainWindow
 
@@ -42,4 +42,4 @@ if __name__ == "__main__":
     window = CtViewer()
     app.aboutToQuit.connect(window.onClose)
     window.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())

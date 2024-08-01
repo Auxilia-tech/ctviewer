@@ -14,7 +14,7 @@
 
 - vedo
 - vtkmodules
-- PyQt5
+- PyQt6
   
 ## <div align="center">Installation</div>
 

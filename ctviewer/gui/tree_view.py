@@ -1,7 +1,8 @@
 import os
 
-from PyQt5 import QtWidgets, QtCore
-from PyQt5.QtWidgets import QTreeView, QWidget, QVBoxLayout
+from PyQt6.QtWidgets import QTreeView, QWidget, QVBoxLayout, QSizePolicy
+from PyQt6.QtCore import QModelIndex
+from PyQt6.QtGui import QFileSystemModel
 
 class TreeView(QTreeView):
     def __init__(self, centralwidget:QWidget, left_layout:QVBoxLayout, exts:list, update_volume_callback:callable):
@@ -19,9 +20,9 @@ class TreeView(QTreeView):
         self.exts = exts
         self.update_volume_callback = update_volume_callback
         self.setObjectName(f"TreeView of {exts} volume files")
-        self.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
         self.setMaximumWidth(300)
-        self.fileSystemModel = QtWidgets.QFileSystemModel()
+        self.fileSystemModel = QFileSystemModel()
         self.setModel(self.fileSystemModel)
         self.clicked.connect(self.treeItemClicked)
         left_layout.addWidget(self)
@@ -34,9 +35,9 @@ class TreeView(QTreeView):
         self.fileSystemModel.setNameFilters([f"*.{ext}" for ext in self.exts])
         self.fileSystemModel.setNameFilterDisables(False)
         self.setRootIndex(self.fileSystemModel.index(self.data_path))
-        self.dataChanged(QtCore.QModelIndex(), QtCore.QModelIndex())
+        self.dataChanged(QModelIndex(), QModelIndex())
 
-    def treeItemClicked(self, index:QtCore.QModelIndex):
+    def treeItemClicked(self, index:QModelIndex):
         """
         Handle the tree item clicked event.
 

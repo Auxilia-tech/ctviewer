@@ -1,6 +1,9 @@
 from pathlib import Path
 
-from PyQt5 import QtCore, QtWidgets, Qt, QtGui
+from PyQt6.QtWidgets import QApplication, QFileDialog, QMessageBox, QMenu, QLayout, QMainWindow, QStatusBar, QMenuBar, QTabWidget, QWidget, QVBoxLayout, QHBoxLayout, QPushButton
+from PyQt6.QtGui import QIcon, QAction, QDesktopServices
+from PyQt6.QtCore import QMetaObject, QRect, pyqtSlot, QUrl
+from PyQt6.QtCore import pyqtSlot
 from vtkmodules.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 
 from ctviewer.rendering import Renderer
@@ -11,16 +14,16 @@ from ctviewer.utils import SHORCUTS_TEXT, ABOUT_TEXT
 ROOT = Path(__file__).resolve().parents[2]
 
 try:
-    _encoding = QtWidgets.QApplication.UnicodeUTF8
+    _encoding = QApplication.UnicodeUTF8
 
     def _translate(context, text, disambig):
-        return QtWidgets.QApplication.translate(context, text, disambig, _encoding)
+        return QApplication.translate(context, text, disambig, _encoding)
 except AttributeError:
     def _translate(context, text, disambig):
-        return QtWidgets.QApplication.translate(context, text, disambig)
+        return QApplication.translate(context, text, disambig)
 
 
-class MainWindow(QtWidgets.QMainWindow):
+class MainWindow(QMainWindow):
     """
     The main window of the CTViewer application.
 
@@ -35,8 +38,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.setObjectName("Auxilia CTViewer")
         self.setWindowTitle(_translate("Auxilia CTViewer", "Auxilia CTViewer", None))
-        self.setWindowIcon(QtGui.QIcon(str(ROOT / "icons" / "logo.png"))  )
-        QtCore.QMetaObject.connectSlotsByName(self)
+        self.setWindowIcon(QIcon(str(ROOT / "icons" / "logo.png"))  )
+        QMetaObject.connectSlotsByName(self)
         self.resize(1920, 1080)
 
         # Create a settings dialog
@@ -48,29 +51,29 @@ class MainWindow(QtWidgets.QMainWindow):
         self.renderer = Renderer(**user_config, qt_widget=self.vtkWidget1, isovalue=1350, bg='white', bg2='white', axes=8)
 
         # Create a central widget
-        self.centralwidget = QtWidgets.QWidget(self)
+        self.centralwidget = QWidget(self)
         self.centralwidget.setObjectName("centralwidget")
         self.setCentralWidget(self.centralwidget)
 
         # Create main view
-        self.main_view = QtWidgets.QWidget()
+        self.main_view = QWidget()
         self.main_view.setObjectName("Main View")
 
         # Create a vertical layout for the main view
-        self.vtkLayout1 = QtWidgets.QVBoxLayout(self.main_view)
+        self.vtkLayout1 = QVBoxLayout(self.main_view)
         self.vtkLayout1.setObjectName("vtkLayout1")
         self.vtkLayout1.addWidget(self.vtkWidget1)
         
         # Create a tab widget
-        self.tabWidget = QtWidgets.QTabWidget(self.centralwidget)
+        self.tabWidget = QTabWidget(self.centralwidget)
         self.tabWidget.addTab(self.main_view, "Main View")
 
         # Horizontal layout
-        self.hLayout = QtWidgets.QHBoxLayout(self.centralwidget)
+        self.hLayout = QHBoxLayout(self.centralwidget)
         self.hLayout.addWidget(self.tabWidget)
 
         # Create a vertical layout for the left side of the main window
-        self.left_layout = QtWidgets.QVBoxLayout()
+        self.left_layout = QVBoxLayout()
 
         # Add a QTreeView to the left side of the main window
         self.treeView = TreeView(self.centralwidget, self.left_layout, self.settingDialog.get_exts(), self.renderer.update_volume)
@@ -79,8 +82,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.hLayout.addLayout(self.left_layout)
 
         # Create a menu bar
-        self.menubar = QtWidgets.QMenuBar(self)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 31))
+        self.menubar = QMenuBar(self)
+        self.menubar.setGeometry(QRect(0, 0, 800, 31))
         self.setMenuBar(self.menubar)
 
         # Add a menu "File"
@@ -89,7 +92,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.add_Action_button("Open file", self.openFileDialog, self.file_menu)
         self.add_Action_button("New", self.newFile, self.file_menu)
         self.add_Action_button("Save", self.saveFile, self.file_menu)
-        self.add_Action_button("Save As...", self.saveAsFile, self.file_menu)
+        self.add_Action_button("Save As", self.saveAsFile, self.file_menu)
         self.add_Action_button("Exit", self.onClose, self.file_menu)
 
         # Add a menu "Edit"
@@ -106,10 +109,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.add_Action_button("Website", self.openWebsite, self.help_menu)
 
         # Create a status bar
-        self.setStatusBar(QtWidgets.QStatusBar(self))
+        self.setStatusBar(QStatusBar(self))
 
         # Créer un layout horizontal pour les boutons
-        self.buttonsLayout = QtWidgets.QHBoxLayout()
+        self.buttonsLayout = QHBoxLayout()
         # Ajustez l'espace entre les boutons ici
         self.buttonsLayout.setSpacing(10)
 
@@ -117,7 +120,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.add_Push_button("Composite", "Change volume Mode to Composite", lambda: self.renderer.ray_cast_mode(0), self.buttonsLayout)
         self.add_Push_button("Max proj.", "Change volume Mode to max proj.", lambda: self.renderer.ray_cast_mode(1), self.buttonsLayout)
         self.add_Push_button("Iso surface", "Change volume Mode to Iso surface Browser", self.renderer.iso_surface_mode, self.buttonsLayout)
-        self.add_Push_button("3D Slider", "Cut the volume in 2D slices", self.renderer.slider_mode, self.buttonsLayout)
+        self.add_Push_button("Slider 3D", "Cut the volume in 2D slices", self.renderer.slider_mode, self.buttonsLayout)
         self.add_Push_button("Clean view", "Delete loaded masks and volume", self.renderer.clean_view, self.buttonsLayout)
         self.add_Push_button(f"Axes\n[ {8} / {14} ]", "Change axes mode", self.onClick_axes, self.buttonsLayout)
         self.add_Push_button(f"Dark mode", "Change apparence mode", self.onClick_apparence, self.buttonsLayout)
@@ -126,21 +129,22 @@ class MainWindow(QtWidgets.QMainWindow):
         self.buttonsLayout.addStretch()
         self.vtkLayout1.addLayout(self.buttonsLayout)
 
-    def add_Push_button(self, text:str, tooltip:str, callback_func, layout:QtWidgets.QLayout, size=(100, 60)):
+    def add_Push_button(self, text:str, tooltip:str, callback_func, layout:QLayout, size=(100, 60)):
 
-        button = QtWidgets.QPushButton(text)
+        button = QPushButton(text)
         button.setToolTip(tooltip)
         button.clicked.connect(callback_func)
         button.setFixedSize(*size)
         layout.addWidget(button)
         button_name = "axes_button" if "Axes" in text else text.split()[0].lower() + "_button"
-        setattr(self, button_name, button)
+        setattr(layout, button_name, button)
             
     
-    def add_Action_button(self, action_name:str, callback_func, menu:QtWidgets.QMenu):
-        action = QtWidgets.QAction(action_name, self)
+    def add_Action_button(self, action_name:str, callback_func, menu:QMenu):
+        action = QAction(action_name, self)
         action.triggered.connect(callback_func)
         menu.addAction(action)
+        setattr(menu, action_name.replace(" ", "_").lower() + "_action", action)
         
     # Définitions des méthodes pour les actions (à implémenter)
     def newFile(self):
@@ -155,10 +159,11 @@ class MainWindow(QtWidgets.QMainWindow):
         """ Save the current scene to a file """
         pass
 
+    @pyqtSlot()
     def openFolderDialog(self):
-        options = QtWidgets.QFileDialog.Options()
+        options = QFileDialog.Options()
         exts = self.settingDialog.get_exts()
-        self.data_path = QtWidgets.QFileDialog.getExistingDirectory(
+        self.data_path = QFileDialog.getExistingDirectory(
             self, f"Select {exts} data Folder", options=options)
         if hasattr(self, 'data_path') and self.data_path:
             self.volume_files = [path for ext in exts for path in Path(self.data_path).rglob('*.' + ext)]
@@ -166,39 +171,41 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.treeView.set_folder(self.data_path)
             else:
                 self.showPopup("Warning", "Empty Folder Path", f"No .{exts} volumes in {self.data_path}")
-    
+
+    @pyqtSlot()
     def openFileDialog(self):
-        options = QtWidgets.QFileDialog.Options()
+        options = QFileDialog.Options()
         exts = self.settingDialog.get_exts() # 'nii', 'nii.gz', 'mha', 'mhd'
-        file_path, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Open volume or mask file", "", f"Volume Files (*.{' *.'.join(exts)})", options=options)
-        if file_path:
-            self.renderer.update_volume(file_path)
+        self.file_path, _ = QFileDialog.getOpenFileName(self, "Open volume or mask file", "", f"Volume Files (*.{' *.'.join(exts)})", options=options)
+        if self.file_path:
+            self.renderer.update_volume(self.file_path)
             self.treeView.refreshTreeView()
-        
+    
+    @pyqtSlot()
     def showPopup(self, type, title, message):
-        msg = QtWidgets.QMessageBox()
-        icon_type = getattr(QtWidgets.QMessageBox, type)
+        msg = QMessageBox()
+        icon_type = getattr(QMessageBox, type)
         msg.setIcon(icon_type)
         msg.setText(message)
         msg.setWindowTitle(title)
         msg.exec_()
 
-    @Qt.pyqtSlot()
+    @pyqtSlot()
     def onClick_axes(self):
         self.renderer.switch_axes()
         axes_count_text = f"Axes\n[ {self.renderer.axes} / {14} ]"
-        self.axes_button.setText(axes_count_text)
+        self.buttonsLayout.axes_button.setText(axes_count_text)
     
-    @Qt.pyqtSlot()
+    @pyqtSlot()
     def onClick_apparence(self):
-        if self.dark_button.text() == "Light mode":
+        if self.buttonsLayout.dark_button.text() == "Light mode":
             self.renderer.change_background('white', 'white')
-            self.dark_button.setText(f"Dark mode")
+            self.buttonsLayout.dark_button.setText(f"Dark mode")
         else:
             self.renderer.change_background('black', 'blackboard')
-            self.dark_button.setText(f"Light mode")
+            self.buttonsLayout.dark_button.setText(f"Light mode")
 
-    @Qt.pyqtSlot()
+    @pyqtSlot()
     def OnClick_exportWebX3D(self):
         if len(self.renderer.bboxes) > 0:
             self.renderer.exportWeb()
@@ -206,17 +213,21 @@ class MainWindow(QtWidgets.QMainWindow):
         else:
             self.showPopup("Warning", "Export Error", "No mask found. Please upload a TDR file first.")
 
+    @pyqtSlot()
     def onClose(self):
         # self.vtkWidget1.close()
         self.renderer.onClose()
         self.close()
     
+    @pyqtSlot()
     def onClick_shorcuts(self):
-        QtWidgets.QMessageBox.about(self, "Keybord shorcuts", SHORCUTS_TEXT)
+        QMessageBox.about(self, "Keybord shorcuts", SHORCUTS_TEXT)
 
+    @pyqtSlot()
     def openAboutDialog(self):
-        QtWidgets.QMessageBox.about(self, "About Viewer", ABOUT_TEXT)
+        QMessageBox.about(self, "About Viewer", ABOUT_TEXT)
 
+    @pyqtSlot()
     def openWebsite(self):
-        url = QtCore.QUrl("https://auxilia-tech.com")
-        QtGui.QDesktopServices.openUrl(url)
+        url = QUrl("https://auxilia-tech.com")
+        QDesktopServices.openUrl(url)

@@ -1,7 +1,6 @@
 # tests/test_main.py
 import pytest
-from PyQt5.QtWidgets import QApplication
-from PyQt5.QtGui import QIcon
+from PyQt6.QtWidgets import QApplication
 from ctviewer.main import CtViewer
 import sys
 
