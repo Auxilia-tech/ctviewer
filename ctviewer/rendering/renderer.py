@@ -125,6 +125,16 @@ class Renderer(Plotter):
         self.volume._update(Volume(np.zeros((1, 1, 1))).dataset)
         self.delete_current_axes()
         self.render()
+    
+    def delete_mask(self):
+        """
+        Delete the loaded mask.
+        """
+        self.remove_flags()
+        self.mask_._update(Volume(np.zeros((1, 1, 1))).dataset)
+        if not self.ray_caster.is_active() and not self.iso_surfer.is_active() and not self.slicer.is_active():
+            self.delete_current_axes()
+        self.render()
 
     def switch_axes(self):
         """

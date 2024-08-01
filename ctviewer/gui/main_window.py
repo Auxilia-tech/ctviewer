@@ -121,6 +121,7 @@ class MainWindow(QMainWindow):
         self.add_Push_button("Max proj.", "Change volume Mode to max proj.", lambda: self.renderer.ray_cast_mode(1), self.buttonsLayout)
         self.add_Push_button("Iso surface", "Change volume Mode to Iso surface Browser", self.renderer.iso_surface_mode, self.buttonsLayout)
         self.add_Push_button("Slider 3D", "Cut the volume in 2D slices", self.renderer.slider_mode, self.buttonsLayout)
+        self.add_Push_button("Delete mask", "Delete loaded masks", self.renderer.delete_mask, self.buttonsLayout)
         self.add_Push_button("Clean view", "Delete loaded masks and volume", self.renderer.clean_view, self.buttonsLayout)
         self.add_Push_button(f"Axes\n[ {8} / {14} ]", "Change axes mode", self.onClick_axes, self.buttonsLayout)
         self.add_Push_button(f"Dark mode", "Change apparence mode", self.onClick_apparence, self.buttonsLayout)
@@ -139,7 +140,6 @@ class MainWindow(QMainWindow):
         button_name = "axes_button" if "Axes" in text else text.split()[0].lower() + "_button"
         setattr(layout, button_name, button)
             
-    
     def add_Action_button(self, action_name:str, callback_func, menu:QMenu):
         action = QAction(action_name, self)
         action.triggered.connect(callback_func)
