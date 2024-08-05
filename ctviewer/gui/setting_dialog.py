@@ -52,7 +52,6 @@ class SettingDialog(QtWidgets.QDialog):
         ogb_cmap = self.user_config.get('ogb_cmap')
         alpha_weights = self.user_config.get('alpha_weights')
         exts = self.user_config.get('exts', ['dcs', 'dcm', 'nii.gz', "mhd"])
-        mask_classes = self.user_config.get('mask_classes')
 
         self.ogb_cmap1_edit = QtWidgets.QLineEdit(self)
         self.ogb_cmap1_edit.setText(str(ogb_cmap[0]))
@@ -96,14 +95,10 @@ class SettingDialog(QtWidgets.QDialog):
         self.layout_.addWidget(self.okButton)
 
         # Update the user settings
-        self.colors = colors
-        self.ogb_cmap = ogb_cmap
         self.ogb = [(ogb_cmap[0], colors[0]), (ogb_cmap[1],
                                                  colors[1]), (ogb_cmap[2], colors[2])]
         self.alpha = [(0, 1), (ogb_cmap[0], alpha_weights[0]),
                         (ogb_cmap[1], alpha_weights[1]), (ogb_cmap[2], alpha_weights[2])]
-        self.exts = exts
-        self.mask_classes = mask_classes
 
     def updateSettings(self):
         """
@@ -123,11 +118,15 @@ class SettingDialog(QtWidgets.QDialog):
         self.user_config['exts'] = [self.exts_layout.itemAt(i).widget().text() for i in range(self.exts_layout.count()) if self.exts_layout.itemAt(i).widget().isChecked()]
 
         # Get the value of the user settings
-        self.ogb_cmap = self.user_config['ogb_cmap']
-        self.alpha_weights = self.user_config['alpha_weights']
-        self.colors = self.user_config['colors']
-        self.exts = self.user_config['exts']
+        ogb_cmap = self.user_config['ogb_cmap']
+        alpha_weights = self.user_config['alpha_weights']
+        colors = self.user_config['colors']
         self.config_manager.save_user_config(self.user_config)
+        # Update the user settings
+        self.ogb = [(ogb_cmap[0], colors[0]), (ogb_cmap[1],
+                                                 colors[1]), (ogb_cmap[2], colors[2])]
+        self.alpha = [(0, 1), (ogb_cmap[0], alpha_weights[0]),
+                        (ogb_cmap[1], alpha_weights[1]), (ogb_cmap[2], alpha_weights[2])]
         self.close()
 
     def reset_settings(self):
@@ -138,19 +137,18 @@ class SettingDialog(QtWidgets.QDialog):
         self.user_config = self.config_manager.get_user_config()
 
         # Load current user settings or defaults if not set
-        self.ogb_cmap = self.user_config.get('ogb_cmap')
-        self.alpha_weights = self.user_config.get('alpha_weights')
-        self.exts = self.user_config.get('exts')
+        ogb_cmap = self.user_config.get('ogb_cmap')
+        alpha_weights = self.user_config.get('alpha_weights')
 
         # Update the panel settings
-        self.ogb_cmap1_edit.setText(str(self.ogb_cmap[0]))
-        self.ogb_cmap2_edit.setText(str(self.ogb_cmap[1]))
-        self.ogb_cmap3_edit.setText(str(self.ogb_cmap[2]))
-        self.alpha1_edit.setText(str(self.alpha_weights[0]))
-        self.alpha2_edit.setText(str(self.alpha_weights[1]))
-        self.alpha3_edit.setText(str(self.alpha_weights[2]))
+        self.ogb_cmap1_edit.setText(str(ogb_cmap[0]))
+        self.ogb_cmap2_edit.setText(str(ogb_cmap[1]))
+        self.ogb_cmap3_edit.setText(str(ogb_cmap[2]))
+        self.alpha1_edit.setText(str(alpha_weights[0]))
+        self.alpha2_edit.setText(str(alpha_weights[1]))
+        self.alpha3_edit.setText(str(alpha_weights[2]))
         self.exts_layout = QtWidgets.QVBoxLayout()
-        for ext in self.exts:
+        for ext in self.user_config.get('exts'):
             checkbox = QtWidgets.QCheckBox(ext, self)
             checkbox.setChecked(True)
             self.exts_layout.addWidget(checkbox)
@@ -162,7 +160,7 @@ class SettingDialog(QtWidgets.QDialog):
         Returns:
             list: The list of colors.
         """
-        return self.colors
+        return self.user_config.get('colors')
     
     def get_ogb_cmap(self) -> list:
         """
@@ -171,7 +169,7 @@ class SettingDialog(QtWidgets.QDialog):
         Returns:
             list: The list of ogb_cmap values.
         """
-        return self.ogb_cmap
+        return self.user_config.get('ogb_cmap')
     
     def get_alpha_weights(self) -> list:
         """
@@ -180,7 +178,7 @@ class SettingDialog(QtWidgets.QDialog):
         Returns:
             list: The list of alpha weights.
         """
-        return self.alpha_weights
+        return self.user_config.get('alpha_weights')
     
     def get_exts(self) -> tuple:
         """
@@ -189,7 +187,7 @@ class SettingDialog(QtWidgets.QDialog):
         Returns:
             tupe: The tupe of extensions.
         """
-        return tuple(self.exts)
+        return tuple(self.user_config.get('exts'))
     
     def get_mask_classes(self) -> list:
         """
@@ -198,7 +196,7 @@ class SettingDialog(QtWidgets.QDialog):
         Returns:
             list: The list of mask classes.
         """
-        return self.mask_classes
+        return self.user_config.get('mask_classes')
     
     def get_user_config(self) -> dict:
         """
@@ -246,5 +244,5 @@ class SettingDialog(QtWidgets.QDialog):
         return {
             'ogb': self.ogb,
             'alpha': self.alpha,
-            'mask_classes': self.mask_classes
+            'mask_classes': self.get_mask_classes(),
         }

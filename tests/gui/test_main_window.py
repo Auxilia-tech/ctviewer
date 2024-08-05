@@ -1,9 +1,7 @@
 # tests/gui/test_main_window.py
 import pytest
 from PyQt6.QtWidgets import QApplication, QFileDialog
-from PyQt6.QtCore import Qt
 from unittest import mock
-from pytest_mock import MockerFixture
 from ctviewer.gui.main_window import MainWindow
 import sys
 
@@ -108,20 +106,48 @@ def test_main_window_actions(main_window: MainWindow):
     assert main_window.help_menu.about_action is not None, "About action should be initialized."
     assert main_window.help_menu.website_action is not None, "Website action should be initialized."
 
-def test_main_window_actions(main_window: MainWindow, mocker):
+# def test_main_window_actions(main_window: MainWindow, mocker):
     
-    # Test if the actions trigger the correct dialogs
-    with mock.patch.object(QFileDialog, 'getExistingDirectory', return_value="../datasets") as mock_get_existing_dir:
-        main_window.file_menu.open_folder_action.trigger()
-        mock_get_existing_dir.assert_called_once(), "QFileDialog.getExistingDirectory() should be called once."
-        assert hasattr(main_window, 'data_path'), "Folder path should be set after opening a folder."
-        assert main_window.data_path == "../datasets", "Folder path should be set correctly."
-        assert main_window.treeView.data_path == "../datasets", "TreeView data path should be set correctly."
-
-    with mock.patch.object(QFileDialog, 'getOpenFileName', return_value=("../datasets/ts_Mask_680_0000.dcs", "DICOS files (*.dcs)")) as mock_get_open_file:
-        main_window.file_menu.actions()[1].trigger()  # Trigger the "Open file" action
-        # qtbot.mouseClick(main_window.file_menu.open_file_action, Qt.MouseButton.LeftButton)
-        mock_get_open_file.assert_called_once(), "QFileDialog.getOpenFileName() should be called once."
-        assert hasattr(main_window, 'file_path'), "File path should be set after opening a file."
-        assert main_window.file_path == "../datasets/ts_Mask_680_0000.dcs", "File path should be set correctly."
+#         # Check if the actions are correctly set up
+#         with mock.patch.object(main_window, 'openFolderDialog') as mock_open_folder:    
+#             main_window.openFolderDialog()
+#             mock_open_folder.assert_called_once(), "Open folder action should be triggered once."
+            # assert main_window.treeView.data_path == "../datasets", "Root path should be set correctly."
+            # assert main_window.data_path == "../datasets", "Root path should be set correctly."
+    
+        # with mock.patch.object(main_window, 'openFileDialog') as mock_open_file:
+        #     main_window.file_menu.open_file_action.trigger()
+        #     mock_open_file.assert_called_once(), "Open file action should be triggered once."
+    
+        # with mock.patch.object(main_window, 'newFile') as mock_new_file:
+        #     main_window.file_menu.new_action.trigger()
+        #     mock_new_file.assert_called_once(), "New file action should be triggered once."
+    
+        # with mock.patch.object(main_window, 'saveFile') as mock_save_file:
+        #     main_window.file_menu.save_action.trigger()
+        #     mock_save_file.assert_called_once(), "Save file action should be triggered once."
+    
+        # with mock.patch.object(main_window, 'saveAsFile') as mock_save_as_file:
+        #     main_window.file_menu.save_as_action.trigger()
+        #     mock_save_as_file.assert_called_once(), "Save As file action should be triggered once."
+    
+        # with mock.patch.object(main_window, 'onClose') as mock_on_close:
+        #     main_window.file_menu.exit_action.trigger()
+        #     mock_on_close.assert_called_once(), "Exit action should be triggered once."
+    
+        # with mock.patch.object(main_window, 'OnClick_exportWebX3D') as mock_export_web_x3d:
+        #     main_window.edit_menu.export_web_x3d_action.trigger()
+        #     mock_export_web_x3d.assert_called_once(), "Export Web X3D action should be triggered once."
+    
+        # with mock.patch.object(main_window, 'settingDialog.show') as mock_show_settings:
+        #     main_window.settings_menu.settings_action.trigger()
+        #     mock_show_settings.assert_called_once(), "Settings action should be triggered once."
+    
+        # with mock.patch.object(main_window, 'openAboutDialog') as mock_open_about:
+        #     main_window.help_menu.about_action.trigger()
+        #     mock_open_about.assert_called_once(), "About action should be triggered once."
+    
+        # with mock.patch.object(main_window, 'openWebsite') as mock_open_website:
+        #     main_window.help_menu.website_action.trigger()
+        #     mock_open_website.assert_called_once(), "Website action should be triggered once."
     

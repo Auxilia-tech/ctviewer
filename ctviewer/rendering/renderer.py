@@ -148,7 +148,7 @@ class Renderer(Plotter):
         self.add_axes(self.axes)
         self.render()
     
-    def add_axes(self, axes: int):
+    def add_axes(self, axes: int=8):
         """
         Add axes to the plot.
         
@@ -157,9 +157,9 @@ class Renderer(Plotter):
         axes : int
             The axes to add to the plot
         """
-        self.axes = axes
+        self.axes = axes if axes is not None else 8
         bns = self.renderer.ComputeVisiblePropBounds()
-        addons.add_global_axes(axtype=(axes) % 15, c=None, bounds=bns)
+        addons.add_global_axes(axtype=(self.axes) % 15, c=None, bounds=bns)
     
     def delete_current_axes(self):
         """

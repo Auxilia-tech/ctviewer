@@ -29,6 +29,7 @@ class Slicer():
         self.volume = volume
         self.callbacks = callbacks
         self.clamp = clamp
+        self.ogb = ogb # Oranges, greens, and blues for the opacity transfer function
         self.cx, self.cy, self.cz = "dr", "dg", "db" # colors for the sliders
         self.la, self.ld = 0.7, 0.3  # Ambient, Diffuse
         # Build vtkLookupTable object that can be fed into cmap() method.

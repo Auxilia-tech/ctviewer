@@ -215,7 +215,6 @@ class MainWindow(QMainWindow):
 
     @pyqtSlot()
     def onClose(self):
-        # self.vtkWidget1.close()
         self.renderer.onClose()
         self.close()
     
