@@ -161,10 +161,9 @@ class MainWindow(QMainWindow):
 
     @pyqtSlot()
     def openFolderDialog(self):
-        options = QFileDialog.Options()
         exts = self.settingDialog.get_exts()
         self.data_path = QFileDialog.getExistingDirectory(
-            self, f"Select {exts} data Folder", options=options)
+            self, f"Select {exts} data Folder")
         if hasattr(self, 'data_path') and self.data_path:
             self.volume_files = [path for ext in exts for path in Path(self.data_path).rglob('*.' + ext)]
             if len(self.volume_files) > 0:
@@ -174,9 +173,8 @@ class MainWindow(QMainWindow):
 
     @pyqtSlot()
     def openFileDialog(self):
-        options = QFileDialog.Options()
         exts = self.settingDialog.get_exts() # 'nii', 'nii.gz', 'mha', 'mhd'
-        self.file_path, _ = QFileDialog.getOpenFileName(self, "Open volume or mask file", "", f"Volume Files (*.{' *.'.join(exts)})", options=options)
+        self.file_path, _ = QFileDialog.getOpenFileName(self, "Open volume or mask file", "", f"Volume Files (*.{' *.'.join(exts)})")
         if self.file_path:
             self.renderer.update_volume(self.file_path)
             self.treeView.refreshTreeView()
