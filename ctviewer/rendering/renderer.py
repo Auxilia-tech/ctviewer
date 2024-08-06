@@ -284,7 +284,10 @@ class Renderer(Plotter):
         mesh_mask = mask.isosurface().decimate(0.5).color("red").alpha(1)
         txt = Text3D("Auxilia Web CTViewer", font='Bongas', s=30, c='black', depth=0.05)
         plt.show(mesh_mask, self.bboxes, self.fss, txt, txt.box(padding=20), axes=1, viewup='z', zoom=1.2)
-        plt.export('tdr.x3d')
+        import os
+        if not os.path.exists('export'):
+            os.makedirs('export')
+        plt.export('export/tdr.x3d')
 
     def onClose(self):
         """
