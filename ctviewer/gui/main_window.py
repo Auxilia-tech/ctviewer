@@ -169,7 +169,7 @@ class MainWindow(QMainWindow):
             if len(self.volume_files) > 0:
                 self.treeView.set_folder(self.data_path)
             else:
-                self.showPopup("Warning", "Empty Folder Path", f"No .{exts} volumes in {self.data_path}")
+                self.showPopup("warning", "Empty Folder Path", f"No .{exts} volumes in {self.data_path}")
 
     @pyqtSlot()
     def openFileDialog(self):
@@ -181,12 +181,7 @@ class MainWindow(QMainWindow):
     
     @pyqtSlot()
     def showPopup(self, type, title, message):
-        msg = QMessageBox()
-        icon_type = getattr(QMessageBox, type)
-        msg.setIcon(icon_type)
-        msg.setText(message)
-        msg.setWindowTitle(title)
-        msg.exec_()
+        getattr(QMessageBox, type)(self, title, message)
 
     @pyqtSlot()
     def onClick_axes(self):
@@ -207,9 +202,9 @@ class MainWindow(QMainWindow):
     def OnClick_exportWebX3D(self):
         if len(self.renderer.bboxes) > 0:
             self.renderer.exportWeb()
-            self.showPopup("Information", "Export Success", "The volume and mask have been exported to export/tdr.x3d")
+            self.showPopup("information", "Export Success", "The volume and mask have been exported to export/tdr.x3d")
         else:
-            self.showPopup("Warning", "Export Error", "No mask found. Please upload a TDR file first.")
+            self.showPopup("warning", "Export Error", "No mask found. Please upload a TDR file first.")
 
     @pyqtSlot()
     def onClose(self):
