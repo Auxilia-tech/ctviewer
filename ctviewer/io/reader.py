@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, List
 
 from vedo import Volume, np
 from pydicos import dcsread
@@ -53,6 +53,8 @@ class Reader:
             data = dcsread(path).get_data()
             if isinstance(data, np.ndarray):
                 volume = Volume(data)
+            elif isinstance(data, List):
+                volume = Volume(data[0])
             elif isinstance(data, dict):
                 volume = self.Read_TDR_data(data) 
                 volume = Volume(volume)
