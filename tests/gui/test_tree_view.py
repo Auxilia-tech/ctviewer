@@ -1,7 +1,10 @@
 import pytest
+import numpy as np
+import vedo
+import os
 from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout
 
-from ctviewer.gui import TreeView  # Replace 'your_module' with the actual module name where TreeView is defined.
+from ctviewer.gui import TreeView
 
 @pytest.fixture(scope="module")
 def app():
@@ -15,14 +18,15 @@ def main_window():
     window.setLayout(layout)
     return window, layout
 
-def test_tree_view_initialization(main_window):
+def test_tree_view_initialization(main_window, qtbot):
     window, layout = main_window
-    exts = ["dcs", "dcm", "nii", "nii.gz", "mhd"]
+    exts = ["dcm", "nii", "nii.gz", "mhd"]
     callback = lambda x: x
     tree_view = TreeView(window, layout, exts, callback)
     assert tree_view.exts == exts
     assert tree_view.update_volume_callback == callback
     assert tree_view.fileSystemModel is not None
+    assert tree_view.data_path == os.path.expanduser("~")
 
 def test_tree_view_file_filtering(main_window, qtbot):
     window, layout = main_window
@@ -30,7 +34,6 @@ def test_tree_view_file_filtering(main_window, qtbot):
     callback = lambda x: x
     tree_view = TreeView(window, layout, exts, callback)
 
-    # Assuming '../datasets/' or the script directory contains some test files
     tree_view.refreshTreeView()
 
     root_index = tree_view.fileSystemModel.index(tree_view.data_path)
@@ -58,13 +61,22 @@ def test_tree_view_item_click(main_window, qtbot):
         qtbot.mouseClick(tree_view.viewport(), qtbot.LeftButton, pos=tree_view.visualRect(first_item_index).center())
         assert clicked_item == tree_view.fileSystemModel.filePath(first_item_index)
 
-def test_set_folder(main_window, qtbot):
+def test_set_folder(main_window, qtbot, tmp_path):
     window, layout = main_window
     exts = ["dcm", "nii", "nii.gz", "mhd"]
     callback = lambda x: x
+    
     tree_view = TreeView(window, layout, exts, callback)
+    
+    # Create a temporary folder and a .mhd file within it
+    temp_folder = tmp_path / "datasets"
+    temp_folder.mkdir()
+    volume_data = np.random.rand(10, 10, 10)  # Replace with actual volume data if needed
+    temp_mhd_file = temp_folder / "temp_volume.mhd"
+    volume = vedo.Volume(volume_data)
+    vedo.write(volume, str(temp_mhd_file))  # Save the volume data as a .mhd file
 
-    new_folder = '/new/path/to/datasets'
-    tree_view.set_folder(new_folder)
-    assert tree_view.data_path == new_folder
+    # Test setting the folder
+    tree_view.set_folder(str(temp_folder))
+    assert tree_view.data_path == str(temp_folder)
     # assert tree_view.fileSystemModel.rootPath() == new_folder # TODO: This assertion fails because the root path is not updated.

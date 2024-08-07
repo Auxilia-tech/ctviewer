@@ -26,7 +26,7 @@ class TreeView(QTreeView):
         self.setModel(self.fileSystemModel)
         self.clicked.connect(self.treeItemClicked)
         left_layout.addWidget(self)
-        self.data_path = '../datasets/' if os.path.exists('../datasets/') else str(os.path.dirname(os.path.realpath(__file__))) + '/datasets/'
+        self.data_path = os.path.expanduser("~")
         self.refreshTreeView()
     
     def refreshTreeView(self):
