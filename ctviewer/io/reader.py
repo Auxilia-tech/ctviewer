@@ -58,9 +58,11 @@ class Reader:
             elif isinstance(data, dict):
                 volume = self.Read_TDR_data(data) 
                 volume = Volume(volume)
+            else:
+                raise ValueError("Invalid data type")
         return volume, self.properties
     
-    def Read_TDR_data(self, metadata_dict: dict) -> Tuple[np.ndarray, dict]:
+    def Read_TDR_data(self, metadata_dict: dict) -> np.ndarray:
         """
         Reads a TDR file and returns the list of PTOs.
 

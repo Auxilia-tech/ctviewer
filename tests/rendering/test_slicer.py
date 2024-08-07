@@ -1,6 +1,5 @@
 import pytest
 from unittest.mock import MagicMock
-from vedo import Volume
 from ctviewer.io import Reader
 from ctviewer.rendering.callbacks import RendererCallbacks
 from ctviewer.rendering import Slicer  # Replace with the correct import path
