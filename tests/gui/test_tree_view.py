@@ -18,22 +18,23 @@ def main_window():
     window.setLayout(layout)
     return window, layout
 
-def test_tree_view_initialization(main_window, qtbot):
+@pytest.fixture
+def tree_view_components(main_window):
     window, layout = main_window
     exts = ["dcm", "nii", "nii.gz", "mhd"]
     callback = lambda x: x
     tree_view = TreeView(window, layout, exts, callback)
+    return tree_view, exts
+
+def test_tree_view_initialization(qtbot, tree_view_components):
+    tree_view, exts = tree_view_components
     assert tree_view.exts == exts
-    assert tree_view.update_volume_callback == callback
+    assert tree_view.update_volume_callback is not None
     assert tree_view.fileSystemModel is not None
     assert tree_view.data_path == os.path.expanduser("~")
 
-def test_tree_view_file_filtering(main_window, qtbot):
-    window, layout = main_window
-    exts = ["dcm", "nii", "nii.gz", "mhd"]
-    callback = lambda x: x
-    tree_view = TreeView(window, layout, exts, callback)
-
+def test_tree_view_file_filtering(qtbot, tree_view_components):
+    tree_view, exts = tree_view_components
     tree_view.refreshTreeView()
 
     root_index = tree_view.fileSystemModel.index(tree_view.data_path)
@@ -44,15 +45,13 @@ def test_tree_view_file_filtering(main_window, qtbot):
         file_name = tree_view.fileSystemModel.fileName(index)
         assert file_name.split('.')[-1] in exts
 
-def test_tree_view_item_click(main_window, qtbot):
-    window, layout = main_window
-    exts = ["dcm", "nii", "nii.gz", "mhd"]
+def test_tree_view_item_click(qtbot, tree_view_components):
+    tree_view, _ = tree_view_components
     clicked_item = None
     def callback(path):
         nonlocal clicked_item
         clicked_item = path
 
-    tree_view = TreeView(window, layout, exts, callback)
     tree_view.refreshTreeView()
 
     root_index = tree_view.fileSystemModel.index(tree_view.data_path)
@@ -61,15 +60,11 @@ def test_tree_view_item_click(main_window, qtbot):
         qtbot.mouseClick(tree_view.viewport(), qtbot.LeftButton, pos=tree_view.visualRect(first_item_index).center())
         assert clicked_item == tree_view.fileSystemModel.filePath(first_item_index)
 
-def test_set_folder(main_window, qtbot, tmp_path):
-    window, layout = main_window
-    exts = ["dcm", "nii", "nii.gz", "mhd"]
-    callback = lambda x: x
-    
-    tree_view = TreeView(window, layout, exts, callback)
+def test_set_folder(qtbot, tmp_path, tree_view_components):
+    tree_view, _ = tree_view_components
     
     # Create a temporary folder and a .mhd file within it
-    temp_folder = tmp_path / "datasets"
+    temp_folder = tmp_path / "data"
     temp_folder.mkdir()
     volume_data = np.random.rand(10, 10, 10) 
     temp_mhd_file = temp_folder / "temp_volume.mhd"

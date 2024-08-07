@@ -1,52 +1,12 @@
 import pytest
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 import vedo
-from vedo import Volume, addons
 from ctviewer.io import Reader
 from ctviewer.rendering.callbacks import RendererCallbacks
 from ctviewer.rendering.ray_caster import RayCaster
 from ctviewer.rendering.iso_surfer import IsoSurfer
 from ctviewer.rendering.slicer import Slicer
 from ctviewer.rendering import Renderer
-from ctviewer.utils import ConfigManager
-
-@pytest.fixture
-def mock_callbacks():
-    return MagicMock(spec=RendererCallbacks)
-
-@pytest.fixture
-def mock_reader():
-    return Reader()
-
-@pytest.fixture
-def mock_volume():
-    return MagicMock(spec=Volume)
-
-@pytest.fixture
-def ogb():
-    return [(100, 'orange'), (200, 'green'), (300, 'blue')]
-
-@pytest.fixture
-def alpha():
-    return [0.5, 0.5, 0.5]
-
-@pytest.fixture
-def mock_ray_caster():
-    return MagicMock(spec=RayCaster)
-
-@pytest.fixture
-def mock_iso_surfer():
-    return MagicMock(spec=IsoSurfer)
-
-@pytest.fixture
-def mock_slicer():
-    return MagicMock(spec=Slicer)
-
-@pytest.fixture
-def mask_classes():
-    config_manager = ConfigManager()
-    user_config = config_manager.get_user_config()
-    return user_config["mask_classes"]
 
 @pytest.fixture
 def renderer(ogb, alpha, mock_callbacks, mock_reader, mock_ray_caster, mock_iso_surfer, mock_slicer, mask_classes):
@@ -84,23 +44,23 @@ def test_quit_current_mode(renderer):
     renderer.quit_current_mode()
     renderer.ray_caster.deactivate.assert_called_once()
 
-def test_update_volume(renderer, mock_reader, mock_volume):
+def test_update_volume(renderer, mock_reader, mock_volume, mhd_path, tdr_temp_file_path):
     # Test with a regular volume
     with patch.object(mock_reader, '__call__', return_value=(mock_volume, {"is_mask": False})), \
          patch.object(renderer.volume, '_update') as mock_update_volume, \
          patch.object(renderer, 'add_flags') as mock_add_flags, \
          patch.object(renderer, 'ray_cast_mode') as mock_ray_cast_mode:
 
-        renderer.update_volume("../datasets/ts_image_74_0000.nii.gz")
+        renderer.update_volume(mhd_path)
         # mock_update_volume.assert_called_once_with(mock_volume.dataset)
         mock_add_flags.assert_not_called()
 
-    # Test with a mask volume
+    # Test with a mask tdr file
     with patch.object(mock_reader, '__call__', return_value=(mock_volume, {"is_mask": True})), \
          patch.object(renderer.mask_, '_update') as mock_update_mask, \
          patch.object(renderer, 'add_flags') as mock_add_flags:
 
-        renderer.update_volume("../datasets/ts_Mask_680_0000.dcs")
+        renderer.update_volume(tdr_temp_file_path)
         # mock_update_mask.assert_called_once_with(mock_volume.dataset)
         mock_add_flags.assert_called_once()
 

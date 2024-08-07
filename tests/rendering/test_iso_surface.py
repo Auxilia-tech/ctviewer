@@ -11,15 +11,6 @@ def mock_callbacks():
     return MagicMock(spec=RendererCallbacks)
 
 @pytest.fixture
-def mhd_volume(tmp_path):
-    reader = Reader()
-    temp_volume = np.random.rand(10, 10, 10)
-    temp_mhd_file = tmp_path / "temp_mhd_volume.mhd"
-    vedo.write(vedo.Volume(temp_volume), str(temp_mhd_file))
-    volume, properties = reader(str(temp_mhd_file))
-    return volume
-
-@pytest.fixture
 def iso_surfer(mhd_volume, mock_callbacks):
     return IsoSurfer(volume=mhd_volume, isovalue=50, sliderpos=0, delayed=False, callbacks=mock_callbacks)
 

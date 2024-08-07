@@ -1,33 +1,12 @@
 import pytest
-from unittest.mock import MagicMock
-from ctviewer.io import Reader
-from ctviewer.rendering.callbacks import RendererCallbacks
 from ctviewer.rendering import RayCaster
 
 @pytest.fixture
-def mock_callbacks():
-    return MagicMock(spec=RendererCallbacks)
+def ray_caster(mhd_volume, ogb, alpha, mock_callbacks):
+    return RayCaster(volume=mhd_volume, ogb=ogb, alpha=alpha, callbacks=mock_callbacks)
 
-@pytest.fixture
-def nii_gz_volume():
-    reader = Reader()
-    volume, properties = reader("../datasets/ts_image_74_0000.nii.gz")  # Path to the test file
-    return volume
-
-@pytest.fixture
-def ogb():
-    return [(100, 'orange'), (200, 'green'), (300, 'blue')]
-
-@pytest.fixture
-def alpha():
-    return 0.5
-
-@pytest.fixture
-def ray_caster(nii_gz_volume, ogb, alpha, mock_callbacks):
-    return RayCaster(volume=nii_gz_volume, ogb=ogb, alpha=alpha, callbacks=mock_callbacks)
-
-def test_initialization(ray_caster, nii_gz_volume, ogb, alpha, mock_callbacks):
-    assert ray_caster.volume == nii_gz_volume
+def test_initialization(ray_caster, mhd_volume, ogb, alpha, mock_callbacks):
+    assert ray_caster.volume == mhd_volume
     assert ray_caster.ogb == ogb
     assert ray_caster.alpha == alpha
     assert ray_caster.callbacks == mock_callbacks
