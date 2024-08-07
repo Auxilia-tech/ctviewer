@@ -71,7 +71,7 @@ def test_set_folder(main_window, qtbot, tmp_path):
     # Create a temporary folder and a .mhd file within it
     temp_folder = tmp_path / "datasets"
     temp_folder.mkdir()
-    volume_data = np.random.rand(10, 10, 10)  # Replace with actual volume data if needed
+    volume_data = np.random.rand(10, 10, 10) 
     temp_mhd_file = temp_folder / "temp_volume.mhd"
     volume = vedo.Volume(volume_data)
     vedo.write(volume, str(temp_mhd_file))  # Save the volume data as a .mhd file

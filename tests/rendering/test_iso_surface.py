@@ -1,4 +1,6 @@
 import pytest
+import numpy as np
+import vedo
 from unittest.mock import MagicMock
 from ctviewer.io import Reader
 from ctviewer.rendering.callbacks import RendererCallbacks
@@ -9,17 +11,20 @@ def mock_callbacks():
     return MagicMock(spec=RendererCallbacks)
 
 @pytest.fixture
-def nii_gz_volume():
+def mhd_volume(tmp_path):
     reader = Reader()
-    volume, properties = reader("../datasets/ts_image_74_0000.nii.gz")  # Path to the test file
+    temp_volume = np.random.rand(10, 10, 10)
+    temp_mhd_file = tmp_path / "temp_mhd_volume.mhd"
+    vedo.write(vedo.Volume(temp_volume), str(temp_mhd_file))
+    volume, properties = reader(str(temp_mhd_file))
     return volume
 
 @pytest.fixture
-def iso_surfer(nii_gz_volume, mock_callbacks):
-    return IsoSurfer(volume=nii_gz_volume, isovalue=50, sliderpos=0, delayed=False, callbacks=mock_callbacks)
+def iso_surfer(mhd_volume, mock_callbacks):
+    return IsoSurfer(volume=mhd_volume, isovalue=50, sliderpos=0, delayed=False, callbacks=mock_callbacks)
 
-def test_initialization(iso_surfer, nii_gz_volume, mock_callbacks):
-    assert iso_surfer.volume == nii_gz_volume
+def test_initialization(iso_surfer, mhd_volume, mock_callbacks):
+    assert iso_surfer.volume == mhd_volume
     assert iso_surfer.isovalue == 50
     assert iso_surfer.sliderpos == 0
     assert iso_surfer.delayed is False
@@ -55,3 +60,5 @@ def test_deactivate(iso_surfer):
 
 def test_check_volume(iso_surfer):
     assert iso_surfer.check_volume() is True
+    iso_surfer.volume = None
+    assert iso_surfer.check_volume() is False
