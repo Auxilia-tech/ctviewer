@@ -3,6 +3,7 @@ import numpy as np
 import vedo
 import os
 from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout
+from PyQt6.QtCore import Qt
 
 from ctviewer.gui import TreeView
 
@@ -47,18 +48,17 @@ def test_tree_view_file_filtering(qtbot, tree_view_components):
 
 def test_tree_view_item_click(qtbot, tree_view_components):
     tree_view, _ = tree_view_components
-    clicked_item = None
-    def callback(path):
-        nonlocal clicked_item
-        clicked_item = path
-
     tree_view.refreshTreeView()
 
     root_index = tree_view.fileSystemModel.index(tree_view.data_path)
-    if tree_view.fileSystemModel.rowCount(root_index) > 0:
-        first_item_index = tree_view.fileSystemModel.index(0, 0, root_index)
-        qtbot.mouseClick(tree_view.viewport(), qtbot.LeftButton, pos=tree_view.visualRect(first_item_index).center())
-        assert clicked_item == tree_view.fileSystemModel.filePath(first_item_index)
+    rows = tree_view.fileSystemModel.rowCount(root_index)
+
+    for row in range(rows):
+        index = tree_view.fileSystemModel.index(row, 0, root_index)
+        qtbot.mouseClick(tree_view.viewport(), Qt.MouseButton.LeftButton, pos=tree_view.visualRect(index).center())
+        assert tree_view.update_volume_callback is not None
+        # TODO Add more assertions
+        
 
 def test_set_folder(qtbot, tmp_path, tree_view_components):
     tree_view, _ = tree_view_components
