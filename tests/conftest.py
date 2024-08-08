@@ -2,12 +2,12 @@ import pytest
 import numpy as np
 import vedo
 from vedo import Volume
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from pyDICOS import CT, DcsLongString, Filename, ErrorLog
 from pydicos import CTLoader
 
-from ctviewer.rendering import RendererCallbacks, IsoSurfer, RayCaster, Slicer
+from ctviewer.rendering import RendererCallbacks, IsoSurfer, RayCaster, Slicer, Renderer
 from ctviewer.utils import ConfigManager
 from ctviewer.io import Reader
 
@@ -48,8 +48,8 @@ def temp_mask_data(temp_mask_path, mock_reader):
     return mock_reader(temp_mask_path)[0]
 
 @pytest.fixture
-def temp_volume_data(temp_volume_path, mock_reader):
-    return mock_reader(temp_volume_path)[0]
+def temp_volume_data(temp_mhd_path, mock_reader):
+    return mock_reader(temp_mhd_path)[0]
 
 @pytest.fixture
 def mock_callbacks():
@@ -78,6 +78,17 @@ def mock_iso_surfer():
 @pytest.fixture
 def mock_slicer():
     return MagicMock(spec=Slicer)
+
+@pytest.fixture
+def mock_renderer(ogb, alpha, mock_callbacks, mock_reader, mock_ray_caster, mock_iso_surfer, mock_slicer, mask_classes):
+    with patch('vedo.show', MagicMock()):
+        renderer = Renderer(ogb=ogb, alpha=alpha, isovalue=0.5, sliderpos=4, mask_classes=mask_classes)
+        renderer.reader = mock_reader
+        renderer.callbacks = mock_callbacks
+        renderer.ray_caster = mock_ray_caster
+        renderer.iso_surfer = mock_iso_surfer
+        renderer.slicer = mock_slicer
+        return renderer
 
 @pytest.fixture
 def mask_classes():

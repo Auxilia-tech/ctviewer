@@ -14,11 +14,11 @@ def ogb():
     return [(100, 'orange'), (200, 'green'), (300, 'blue')]
 
 @pytest.fixture
-def slicer(mhd_volume, ogb, mock_callbacks):
-    return Slicer(volume=mhd_volume, ogb=ogb, callbacks=mock_callbacks, clamp=True)
+def slicer(temp_volume_data, ogb, mock_callbacks):
+    return Slicer(volume=temp_volume_data, ogb=ogb, callbacks=mock_callbacks, clamp=True)
 
-def test_initialization(slicer, mhd_volume, ogb, mock_callbacks):
-    assert slicer.volume == mhd_volume
+def test_initialization(slicer, temp_volume_data, ogb, mock_callbacks):
+    assert slicer.volume == temp_volume_data
     assert slicer.ogb == ogb
     assert slicer.callbacks == mock_callbacks
     assert slicer.clamp is True

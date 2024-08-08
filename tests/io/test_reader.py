@@ -45,7 +45,6 @@ def test_read_mask(mock_reader, temp_tdr_file_path, mask_data):
     assert properties["is_mask"] == True
     assert properties["labels"] == ["Label1", "Label2"]
 
-
 def test_read_tdr_data(mock_reader):
     # Test the internal method Read_TDR_data if needed
     metadata_dict = {

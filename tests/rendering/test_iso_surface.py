@@ -1,8 +1,5 @@
 import pytest
-import numpy as np
-import vedo
 from unittest.mock import MagicMock
-from ctviewer.io import Reader
 from ctviewer.rendering.callbacks import RendererCallbacks
 from ctviewer.rendering import IsoSurfer
 
@@ -11,11 +8,11 @@ def mock_callbacks():
     return MagicMock(spec=RendererCallbacks)
 
 @pytest.fixture
-def iso_surfer(mhd_volume, mock_callbacks):
-    return IsoSurfer(volume=mhd_volume, isovalue=50, sliderpos=0, delayed=False, callbacks=mock_callbacks)
+def iso_surfer(temp_volume_data, mock_callbacks):
+    return IsoSurfer(volume=temp_volume_data, isovalue=50, sliderpos=0, delayed=False, callbacks=mock_callbacks)
 
-def test_initialization(iso_surfer, mhd_volume, mock_callbacks):
-    assert iso_surfer.volume == mhd_volume
+def test_initialization(iso_surfer, temp_volume_data, mock_callbacks):
+    assert iso_surfer.volume == temp_volume_data
     assert iso_surfer.isovalue == 50
     assert iso_surfer.sliderpos == 0
     assert iso_surfer.delayed is False

@@ -2,11 +2,11 @@ import pytest
 from ctviewer.rendering import RayCaster
 
 @pytest.fixture
-def ray_caster(mhd_volume, ogb, alpha, mock_callbacks):
-    return RayCaster(volume=mhd_volume, ogb=ogb, alpha=alpha, callbacks=mock_callbacks)
+def ray_caster(temp_volume_data, ogb, alpha, mock_callbacks):
+    return RayCaster(volume=temp_volume_data, ogb=ogb, alpha=alpha, callbacks=mock_callbacks)
 
-def test_initialization(ray_caster, mhd_volume, ogb, alpha, mock_callbacks):
-    assert ray_caster.volume == mhd_volume
+def test_initialization(ray_caster, temp_volume_data, ogb, alpha, mock_callbacks):
+    assert ray_caster.volume == temp_volume_data
     assert ray_caster.ogb == ogb
     assert ray_caster.alpha == alpha
     assert ray_caster.callbacks == mock_callbacks
