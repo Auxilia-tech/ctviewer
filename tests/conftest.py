@@ -223,12 +223,9 @@ def temp_tdr_file_path(tmp_path, temp_dcs_file_path, mask_data):
     temp_tdr_file = tmp_path / "temp_tdr.dcs"
     loader = CTLoader(temp_dcs_file_path)
     detection_boxes = [
-        # {"label": "Label1", "point1": (5, 5, 5), "point2": (10, 10, 10), "confidence": 0.5, "mask": mask_data[5:10, 5:10, 5:10].astype(np.bool_).astype(np.uint8)},
-        # {"label": "Label2", "point1": (40, 40, 40), "point2": (45, 45, 45), "confidence": 0.5, "mask": mask_data[40:45, 40:45, 40:45].astype(np.bool_).astype(np.uint8)}
-        {"label": "Label1", "point1": (5, 5, 5), "point2": (10, 10, 10), "confidence": 0.5, "mask": None},
-        {"label": "Label2", "point1": (40, 40, 40), "point2": (45, 45, 45), "confidence": 0.5, "mask": None}
+        {"label": "Label1", "point1": (5, 5, 5), "point2": (10, 10, 10), "confidence": 0.5, "mask": mask_data[5:10, 5:10, 5:10].astype(np.bool_).astype(np.uint8)},
+        {"label": "Label2", "point1": (40, 40, 40), "point2": (45, 45, 45), "confidence": 0.5, "mask": mask_data[40:45, 40:45, 40:45].astype(np.bool_).astype(np.uint8)}
         ]
     tdr = loader.generate_tdr(detection_boxes)
-    tdr.SetImageScaleRepresentation(1)
     tdr.write(str(temp_tdr_file))
     return str(temp_tdr_file)
