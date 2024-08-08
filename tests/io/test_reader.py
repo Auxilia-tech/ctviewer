@@ -46,6 +46,8 @@ def test_read_mask(mock_reader, temp_tdr_file_path, mask_data):
     assert isinstance(volume, Volume)
     assert properties["is_mask"] == True
     assert properties["labels"] == ["Label1", "Label2"]
+    # Check if the mask has the same number of non-zero elements as the mask data
+    assert len(np.nonzero(volume.tonumpy())[0]) == len(np.nonzero(mask_data)[0])
 
 def test_read_tdr_data(mock_reader):
     """" Test the internal method Read_TDR_data if needed """

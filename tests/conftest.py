@@ -28,7 +28,7 @@ def mask_data():
     """ Create a mask data for testing """
     temp_volume = np.zeros((50, 50, 50)).astype(np.uint8)
     temp_volume[5:10, 5:10, 5:10] = 1
-    temp_volume[40:49, 40:49, 40:49] = 2
+    temp_volume[40:45, 40:45, 40:45] = 2
     return temp_volume
 
 @pytest.fixture
