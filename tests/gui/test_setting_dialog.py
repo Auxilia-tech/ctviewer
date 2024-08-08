@@ -1,12 +1,7 @@
 import pytest
-from PyQt6 import QtWidgets, QtCore
+from PyQt6 import QtCore
 from pytestqt.plugin import QtBot
 from ctviewer.gui import SettingDialog
-
-@pytest.fixture(scope="module")
-def app():
-    app = QtWidgets.QApplication([])
-    yield app
 
 @pytest.fixture
 def dialog(qtbot):
@@ -15,7 +10,7 @@ def dialog(qtbot):
     return dlg
 
 def test_initialization(dialog):
-    # Check initial values are correctly loaded from config
+    """ Test if SettingDialog initializes correctly. """
     config = dialog.get_user_config()
     assert dialog.windowTitle() == 'Settings'
     assert dialog.ogb_cmap1_edit.text() == str(config['ogb_cmap'][0])
@@ -31,7 +26,7 @@ def test_initialization(dialog):
         assert checkbox.isChecked()
 
 def test_update_settings(dialog, qtbot: QtBot):
-    # Simulate user changes text fields
+    """ Test if the default settings are updated correctly. """
     dialog.alpha1_edit.setText('0.1')
     dialog.alpha2_edit.setText('0.2')
     dialog.alpha3_edit.setText('0.3')
@@ -52,7 +47,7 @@ def test_update_settings(dialog, qtbot: QtBot):
     # assert first_checkbox.text() not in updated_config['exts'] # TODO: To be added in the next PR
 
 def test_reset_settings(dialog, qtbot):
-    # Simulate user changes
+    """ Test if the settings are reset to default correctly. """
     qtbot.keyClicks(dialog.ogb_cmap1_edit, '10')
     qtbot.keyClicks(dialog.alpha1_edit, '1.0')
 
@@ -65,7 +60,7 @@ def test_reset_settings(dialog, qtbot):
     assert dialog.alpha1_edit.text() == str(config['alpha_weights'][0])
 
 def test_getters(dialog):
-    # Test getter methods
+    """ Test if the getters return the correct values. """
     config = dialog.get_user_config()
     assert dialog.get_colors() == config['colors']
     assert dialog.get_ogb_cmap() == config['ogb_cmap']
