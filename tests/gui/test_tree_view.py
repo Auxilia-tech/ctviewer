@@ -2,18 +2,14 @@ import pytest
 import numpy as np
 import vedo
 import os
-from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout
+from PyQt6.QtWidgets import QMainWindow, QVBoxLayout
 from PyQt6.QtCore import Qt
 
 from ctviewer.gui import TreeView
 
-@pytest.fixture(scope="module")
-def app():
-    app = QApplication([])
-    yield app
-
 @pytest.fixture
 def main_window():
+    """ Create a main window and layout for testing. """
     window = QMainWindow()
     layout = QVBoxLayout(window)
     window.setLayout(layout)
@@ -21,6 +17,7 @@ def main_window():
 
 @pytest.fixture
 def tree_view_components(main_window):
+    """ Create a TreeView instance for testing. """
     window, layout = main_window
     exts = ["dcm", "nii", "nii.gz", "mhd"]
     callback = lambda x: x
@@ -28,6 +25,7 @@ def tree_view_components(main_window):
     return tree_view, exts
 
 def test_tree_view_initialization(qtbot, tree_view_components):
+    """ Test if TreeView initializes correctly. """
     tree_view, exts = tree_view_components
     assert tree_view.exts == exts
     assert tree_view.update_volume_callback is not None
@@ -35,6 +33,7 @@ def test_tree_view_initialization(qtbot, tree_view_components):
     assert tree_view.data_path == os.path.expanduser("~")
 
 def test_tree_view_file_filtering(qtbot, tree_view_components):
+    """ Test if TreeView filters files correctly. """
     tree_view, exts = tree_view_components
     tree_view.refreshTreeView()
 
@@ -47,6 +46,7 @@ def test_tree_view_file_filtering(qtbot, tree_view_components):
         assert file_name.split('.')[-1] in exts
 
 def test_tree_view_item_click(qtbot, tree_view_components):
+    """ Test if TreeView item click event is handled correctly. """
     tree_view, _ = tree_view_components
     tree_view.refreshTreeView()
 
@@ -61,6 +61,7 @@ def test_tree_view_item_click(qtbot, tree_view_components):
         
 
 def test_set_folder(qtbot, tmp_path, tree_view_components):
+    """ Test if setting the folder updates the data path. """
     tree_view, _ = tree_view_components
     
     # Create a temporary folder and a .mhd file within it

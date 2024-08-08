@@ -4,7 +4,7 @@ import vedo
 from vedo import Volume
 
 def test_initialization(mock_reader):
-    # Check initial properties
+    """ Test the initialization of the Reader object. """
     assert mock_reader.properties == {
         "spacing": (1, 1, 1),
         "origin": (0, 0, 0),
@@ -15,6 +15,7 @@ def test_initialization(mock_reader):
     }
 
 def test_read_npy(mock_reader, temp_npy_path, volume_data):
+    """ Test reading the .npy file """
     volume, properties = mock_reader(temp_npy_path)
     assert isinstance(volume, Volume)
     assert np.array_equal(volume.tonumpy(), volume_data)
@@ -24,6 +25,7 @@ def test_read_npy(mock_reader, temp_npy_path, volume_data):
     assert properties["is_mask"] == False
 
 def test_read_mhd(mock_reader, temp_mhd_path, volume_data):
+    """ Test reading the .mhd file """
     # Test reading the .mhd file
     volume, properties = mock_reader(temp_mhd_path)
     assert isinstance(volume, Volume)
@@ -32,21 +34,21 @@ def test_read_mhd(mock_reader, temp_mhd_path, volume_data):
     assert properties["is_mask"] == False
 
 def test_read_dcs(mock_reader, temp_dcs_file_path, volume_data):
-    # Test reading a .dcs file
+    """ Test reading the .dcm file """
     volume, properties = mock_reader(temp_dcs_file_path)
     assert isinstance(volume, Volume)
     assert properties["is_mask"] == False
     assert np.array_equal(volume.tonumpy(), volume_data)
 
 def test_read_mask(mock_reader, temp_tdr_file_path, mask_data):
-    # Test reading a mask
+    """ Test reading the mask file """
     volume, properties = mock_reader(temp_tdr_file_path)
     assert isinstance(volume, Volume)
     assert properties["is_mask"] == True
     assert properties["labels"] == ["Label1", "Label2"]
 
 def test_read_tdr_data(mock_reader):
-    # Test the internal method Read_TDR_data if needed
+    """" Test the internal method Read_TDR_data if needed """
     metadata_dict = {
         "PTOs": [
             {
@@ -64,7 +66,7 @@ def test_read_tdr_data(mock_reader):
     assert mock_reader.properties["labels"] == ["Test"]
 
 def test_reset_properties(mock_reader):
-    # Modify properties and reset
+    """ Test the reset_properties method of the Reader class """
     mock_reader.properties["spacing"] = (2, 2, 2)
     mock_reader.reset_properties()
     assert mock_reader.properties == {

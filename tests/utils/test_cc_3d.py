@@ -1,6 +1,7 @@
 from ctviewer.utils import connected_components_3d
 
 def test_connected_components_3d(temp_mask_data):
+    """ Test the connected_components_3d function. """
     volume_properties = connected_components_3d(temp_mask_data, connectivity=26, reshape_factor=4)
     print("Volume Properties:", volume_properties)
 

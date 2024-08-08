@@ -13,16 +13,19 @@ from ctviewer.io import Reader
 
 @pytest.fixture
 def mock_reader():
+    """ Create a mock reader object """
     return Reader()
 
 @pytest.fixture
 def volume_data():
+    """ Create a volume data for testing """
     temp_volume = np.zeros((50, 50, 50)).astype(np.uint16)
     temp_volume[5:45, 5:45, 5:45] = 1000
     return temp_volume
 
 @pytest.fixture
 def mask_data():
+    """ Create a mask data for testing """
     temp_volume = np.zeros((50, 50, 50)).astype(np.uint8)
     temp_volume[5:10, 5:10, 5:10] = 1
     temp_volume[40:49, 40:49, 40:49] = 2
@@ -30,57 +33,120 @@ def mask_data():
 
 @pytest.fixture
 def temp_npy_path(tmp_path, volume_data):
+    """
+    Create a temporary npy file for testing
+
+    Args:
+        tmp_path (Path): Temporary directory path
+        volume_data (np.ndarray): Volume data to be written to the npy file
+    
+    Returns:
+        str: Temporary npy file path
+    """
     np.save(str(tmp_path / "temp_volume.npy"), volume_data)
     return str(tmp_path / "temp_volume.npy")
 
 @pytest.fixture
 def temp_mhd_path(tmp_path, volume_data):
+    """
+    Create a temporary mhd file for testing
+
+    Args:
+        tmp_path (Path): Temporary directory path
+        volume_data (np.ndarray): Volume data to be written to the mhd file
+
+    Returns:
+        str: Temporary mhd file path
+    """
     vedo.write(vedo.Volume(volume_data), str(tmp_path / "temp_volume.mhd"))
     return str(tmp_path / "temp_volume.mhd")
     
 @pytest.fixture
 def temp_mask_path(tmp_path, mask_data):
+    """
+    Create a temporary mask .mhd file for testing
+
+    Args:
+        tmp_path (Path): Temporary directory path
+        mask_data (np.ndarray): Mask data to be written to the mask file
+    
+    Returns:
+        str: Temporary mask file path
+    """
     vedo.write(vedo.Volume(mask_data), str(tmp_path / "temp_mask.mhd"))
     return str(tmp_path / "temp_mask.mhd")
 
 @pytest.fixture
 def temp_mask_data(temp_mask_path, mock_reader):
+    """ 
+    Create a temporary mask data for testing 
+
+    Args:
+        temp_mask_path (Path): Temporary mask file path
+        mock_reader (Reader): Mock reader object
+        
+    Returns:
+        np.ndarray: Mask data
+        """
     return mock_reader(temp_mask_path)[0]
 
 @pytest.fixture
 def temp_volume_data(temp_mhd_path, mock_reader):
+    """
+    Create a temporary volume data for testing
+    
+    Args:
+        temp_mhd_path (Path): Temporary mhd file path
+        mock_reader (Reader): Mock reader object
+        
+    Returns:
+        np.ndarray: Volume data
+    """
     return mock_reader(temp_mhd_path)[0]
 
 @pytest.fixture
+def mock_object():
+    """ Create a mock object """
+    return MagicMock()
+
+@pytest.fixture
 def mock_callbacks():
+    """ Create a mock callbacks object """
     return MagicMock(spec=RendererCallbacks)
 
 @pytest.fixture
 def mock_volume():
+    """ Create a mock volume object """
     return MagicMock(spec=Volume)
 
 @pytest.fixture
 def ogb():
+    """ Get the opacity gradient from the user config"""
     return [(100, 'orange'), (200, 'green'), (300, 'blue')]
 
 @pytest.fixture
 def alpha():
+    """ Get the alpha from the user config"""
     return [0.5, 0.5, 0.5]
 
 @pytest.fixture
 def mock_ray_caster():
+    """ Create a mock ray caster object """
     return MagicMock(spec=RayCaster)
 
 @pytest.fixture
 def mock_iso_surfer():
+    """ Create a mock iso surfer object """
     return MagicMock(spec=IsoSurfer)
 
 @pytest.fixture
 def mock_slicer():
+    """ Create a mock slicer object """
     return MagicMock(spec=Slicer)
 
 @pytest.fixture
 def mock_renderer(ogb, alpha, mock_callbacks, mock_reader, mock_ray_caster, mock_iso_surfer, mock_slicer, mask_classes):
+    """ Create a mock renderer object """
     with patch('vedo.show', MagicMock()):
         renderer = Renderer(ogb=ogb, alpha=alpha, isovalue=0.5, sliderpos=4, mask_classes=mask_classes)
         renderer.reader = mock_reader
@@ -92,12 +158,23 @@ def mock_renderer(ogb, alpha, mock_callbacks, mock_reader, mock_ray_caster, mock
 
 @pytest.fixture
 def mask_classes():
+    """ Get the mask classes from the user config"""
     config_manager = ConfigManager()
     user_config = config_manager.get_user_config()
     return user_config["mask_classes"]
 
 @pytest.fixture
 def temp_dcs_file_path(tmp_path, volume_data):
+    """
+    Create a temporary DCS file for testing
+
+    Args:
+        tmp_path (Path): Temporary directory path
+        volume_data (np.ndarray): Volume data to be written to the DCS file
+
+    Returns:
+        str: Temporary DCS file path
+    """
     temp_dcs_file = tmp_path / "temp_volume.dcs"
     CTObject = CT(
             CT.OBJECT_OF_INSPECTION_TYPE.enumTypeBaggage,
@@ -131,6 +208,18 @@ def temp_dcs_file_path(tmp_path, volume_data):
 
 @pytest.fixture
 def temp_tdr_file_path(tmp_path, temp_dcs_file_path, mask_data):
+    """ 
+    Create a temporary TDR file for testing 
+    
+    Args:
+        tmp_path (Path): Temporary directory path
+        temp_dcs_file_path (Path): Temporary DCS file path
+        mask_data (np.ndarray): Mask data to be written to the TDR file
+        
+        Returns:
+        str: Temporary TDR file path
+    
+    """
     temp_tdr_file = tmp_path / "temp_tdr.dcs"
     loader = CTLoader(temp_dcs_file_path)
     detection_boxes = [

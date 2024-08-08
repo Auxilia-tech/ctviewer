@@ -1,19 +1,7 @@
 # tests/gui/test_main_window.py
 import pytest
-from PyQt6.QtWidgets import QApplication, QFileDialog
 from unittest import mock
 from ctviewer.gui.main_window import MainWindow
-import sys
-
-@pytest.fixture(scope="module")
-def qt_app():
-    """
-    Fixture to create and configure a QApplication instance.
-    This fixture will be shared among tests within this module.
-    """
-    app = QApplication(sys.argv)
-    yield app
-    app.quit()
 
 @pytest.fixture
 def main_window(qtbot):
@@ -69,8 +57,7 @@ def test_main_window_ui_components(main_window: MainWindow):
     assert main_window.tabWidget is not None, "Tab widget should be initialized."
 
 def test_main_window_layout(main_window: MainWindow):
-
-    # Check if the main layout is correctly set up
+    """ Test if the main window layout is correctly set up. """
     assert main_window.hLayout is not None, "Horizontal layout should be initialized."
     assert main_window.vtkLayout1 is not None, "VTK layout should be initialized."
     assert main_window.buttonsLayout is not None, "Buttons layout should be initialized."
@@ -81,8 +68,7 @@ def test_main_window_layout(main_window: MainWindow):
     assert main_window.left_layout.refresh_button is not None, "Refresh button should be initialized."
 
 def test_main_window_buttons(main_window: MainWindow):
-    
-    # Check if the buttons are correctly set up
+    """ Test if the buttons are correctly set up. """
     assert main_window.buttonsLayout.composite_button is not None, "Composite button should be initialized."
     assert main_window.buttonsLayout.max_button is not None, "Max proj. button should be initialized."
     assert main_window.buttonsLayout.iso_button is not None, "Iso surface button should be initialized."

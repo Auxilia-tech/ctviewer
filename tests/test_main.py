@@ -2,7 +2,6 @@
 import pytest
 from PyQt6.QtWidgets import QApplication
 from ctviewer.main import CtViewer
-import sys
 
 @pytest.fixture
 def viewer():
