@@ -19,7 +19,7 @@ def main_window():
 def tree_view_components(main_window):
     """ Create a TreeView instance for testing. """
     window, layout = main_window
-    exts = ["dcm", "nii", "nii.gz", "mhd"]
+    exts = ["dcm", "nii", "nii.gz", "mhd", "dcs"]
     callback = lambda x: x
     tree_view = TreeView(window, layout, exts, callback)
     return tree_view, exts
