@@ -10,6 +10,7 @@ from pydicos import CTLoader
 from ctviewer.rendering import RendererCallbacks, IsoSurfer, RayCaster, Slicer, Renderer
 from ctviewer.utils import ConfigManager
 from ctviewer.io import Reader
+from tdr_utils import get_tdr_data_output_template, get_pto_data, set_alarm_decision
 
 @pytest.fixture
 def mock_reader():
@@ -222,10 +223,13 @@ def temp_tdr_file_path(tmp_path, temp_dcs_file_path, mask_data):
     """
     temp_tdr_file = tmp_path / "temp_tdr.dcs"
     loader = CTLoader(temp_dcs_file_path)
-    detection_boxes = [
-        {"label": "Label1", "point1": (5, 5, 5), "point2": (10, 10, 10), "confidence": 0.5, "mask": mask_data[5:10, 5:10, 5:10].astype(np.bool_).astype(np.uint8)},
-        {"label": "Label2", "point1": (40, 40, 40), "point2": (45, 45, 45), "confidence": 0.5, "mask": mask_data[40:45, 40:45, 40:45].astype(np.bool_).astype(np.uint8)}
-        ]
-    tdr = loader.generate_tdr(detection_boxes)
+
+    tdr_dict = get_tdr_data_output_template()
+    PTOs = []
+    PTOs.append(get_pto_data(0, [5, 5, 5], [5, 5, 5], f"Label0", 0.7, mask_data[5:10, 5:10, 5:10].astype(np.bool_).astype(np.uint8)))
+    PTOs.append(get_pto_data(1, [40, 40, 40], [5, 5, 5], f"Label1", 0.7, mask_data[40:45, 40:45, 40:45].astype(np.bool_).astype(np.uint8)))
+    tdr_dict["PTOs"] = PTOs
+    set_alarm_decision(tdr_dict)
+    tdr = loader.generate_tdr(tdr_dict)
     tdr.write(str(temp_tdr_file))
     return str(temp_tdr_file)

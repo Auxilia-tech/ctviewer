@@ -1,6 +1,4 @@
-import pytest
 import numpy as np
-import vedo
 from vedo import Volume
 
 def test_initialization(mock_reader):
@@ -45,7 +43,7 @@ def test_read_mask(mock_reader, temp_tdr_file_path, mask_data):
     volume, properties = mock_reader(temp_tdr_file_path)
     assert isinstance(volume, Volume)
     assert properties["is_mask"] == True
-    assert properties["labels"] == ["Label1", "Label2"]
+    assert properties["labels"] == ["Label0", "Label1"]
     # Check if the mask has the same number of non-zero elements as the mask data
     assert len(np.nonzero(volume.tonumpy())[0]) == len(np.nonzero(mask_data)[0])
 
