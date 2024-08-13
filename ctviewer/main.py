@@ -1,4 +1,6 @@
 import sys
+import os
+os.environ['QT_QPA_PLATFORM'] = "xcb"
 
 from PyQt6 import QtWidgets
 
