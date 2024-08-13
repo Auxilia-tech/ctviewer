@@ -11,10 +11,7 @@ def get_tdr_data_output_template() -> Dict:
 
     data['ATR']['manufacturer'] = 'AUXILIA'
     data['ATR']['version'] = '1.0'
-    data['ATR']['parameters'] = {   'param1':'-use_mirroring=true', 
-                                    'param2':'-use_gaussian=true', 
-                                    'param3':'-tile_step_size=1',
-                                    'param4':'-perform_everything_on_device=true'}
+    data['ATR']['parameters'] = {'param1':'-test=true'}
     data['OOIID'] = '12345-35345324-6326342-345'
     data['InstanceUID'] = '12345-35345324-6326342-345'
     data['ContentDateAndTime'] = {"date" : (2024, 10, 10), "time" : (12, 0, 0, 0)}
