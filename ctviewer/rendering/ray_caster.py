@@ -47,6 +47,7 @@ class RayCaster():
         self.opacityTransferFunction = self.volume.properties.GetScalarOpacity()
         
         self.update_mode(volume_mode)
+        self.update_sliders()
         
         def sliderA0(widget, event):
             self.alphaslider0 = widget.GetRepresentation().GetValue()
@@ -111,6 +112,7 @@ class RayCaster():
 
     def update_sliders(self, values:Tuple[float, float, float]=None):
         """Update the sliders of the ray caster."""
+        if not hasattr(self, 'opacityTransferFunction'): return
         if values:
             self.alphaslider0, self.alphaslider1, self.alphaslider2 = values
         else:

@@ -46,7 +46,8 @@ class TreeView(QTreeView):
 
         """
         volume_path = self.fileSystemModel.filePath(index)
-        self.update_volume_callback(volume_path)
+        if os.path.isfile(volume_path):
+            self.update_volume_callback(volume_path)
         self.refreshTreeView()
 
     def set_folder(self, folder:str):
