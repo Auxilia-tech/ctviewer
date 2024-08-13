@@ -267,6 +267,24 @@ class Renderer(Plotter):
             self.show(viewup='z')
         self.refresh_axes()
         self.render()
+    
+    def update_user_config(self, user_config:Dict):
+        """
+        Update the user configuration with the given parameters.
+        
+        Parameters
+        ----------
+        user_config : dict
+            The user configuration to update
+        """
+        self.ogb, self.alpha = user_config['ogb'], user_config['alpha']
+        self.mask_alpha = [val[2] for val in user_config['mask_classes']]
+        self.mask_flags = {val[0]: val[3] for val in user_config['mask_classes']}
+        self.volume.color(self.ogb).alpha(self.alpha)
+        self.mask_.color("red").alpha([0]+self.mask_alpha[1:])
+        if hasattr(self.ray_caster, 'opacityTransferFunction'):
+            self.ray_caster.setOTF()
+        self.render()
 
     def exportWeb(self):
         """

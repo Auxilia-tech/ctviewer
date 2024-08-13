@@ -205,6 +205,10 @@ class MainWindow(QMainWindow):
             self.showPopup("information", "Export Success", "The volume and mask have been exported to export/tdr.x3d")
         else:
             self.showPopup("warning", "Export Error", "No mask found. Please upload a TDR file first.")
+    
+    def OnClick_apply_settings(self):
+        user_config = self.settingDialog.get_current_config()
+        self.renderer.update_user_config(user_config)
 
     @pyqtSlot()
     def onClose(self):

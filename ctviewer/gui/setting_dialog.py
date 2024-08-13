@@ -46,6 +46,10 @@ class SettingDialog(QtWidgets.QDialog):
         # Set up the settings dialog
         self.config_manager = ConfigManager()
         self.user_config = self.config_manager.get_user_config()
+        if parent is not None and hasattr(parent, 'OnClick_apply_settings'):
+            self.OnClick_apply_settings = parent.OnClick_apply_settings
+        else:
+            self.OnClick_apply_settings = lambda: None
 
         # Load current user settings or defaults if not set
         colors = self.user_config.get('colors')
@@ -127,6 +131,7 @@ class SettingDialog(QtWidgets.QDialog):
                                                  colors[1]), (ogb_cmap[2], colors[2])]
         self.alpha = [(0, 1), (ogb_cmap[0], alpha_weights[0]),
                         (ogb_cmap[1], alpha_weights[1]), (ogb_cmap[2], alpha_weights[2])]
+        self.OnClick_apply_settings()
         self.close()
 
     def reset_settings(self):
