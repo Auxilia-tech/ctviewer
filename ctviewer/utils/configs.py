@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
 
+ROOT = Path(__file__).resolve().parents[2]
+
 class ConfigManager:
     """A class for managing configuration settings.
 
@@ -18,8 +20,8 @@ class ConfigManager:
         get_user_config: Get the current user configuration.
     """
 
-    def __init__(self, config_file='config.json'):
-        self.config_file = Path(config_file)
+    def __init__(self, config_file=ROOT / 'config.json'):
+        self.config_file = config_file
         self.config = self.load_config()
 
     def load_config(self):
@@ -28,8 +30,8 @@ class ConfigManager:
             with open(self.config_file, 'r') as f:
                 return json.load(f)
         else:
-            # Initialize with an empty structure or predefined defaults
-            return {"default": {}, "user": {}}
+            # raise not found error here
+            assert False, f"Config file not found: {self.config_file}"
 
     def save_user_config(self, user_config):
         """Save the updated user configuration.
