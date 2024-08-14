@@ -35,17 +35,18 @@ class SettingDialog(QtWidgets.QDialog):
         Initialize the settings dialog.
 
         Args:
-            parent (QWidget): The parent widget.
+            parent (QWidget): The parent widget, if applicable.
         """
         super(SettingDialog, self).__init__(parent)
 
         self.setWindowTitle('Settings')
-        self.setGeometry(100, 100, 300, 200)
+        self.setGeometry(300, 300, 500, 500)
         self.layout_ = QtWidgets.QVBoxLayout(self)
-        
-        # Set up the settings dialog
+
+        # Set up the configuration manager and load user settings
         self.config_manager = ConfigManager()
         self.user_config = self.config_manager.get_user_config()
+
         if parent is not None and hasattr(parent, 'OnClick_apply_settings'):
             self.OnClick_apply_settings = parent.OnClick_apply_settings
         else:
@@ -57,52 +58,69 @@ class SettingDialog(QtWidgets.QDialog):
         alpha_weights = self.user_config.get('alpha_weights')
         exts = self.user_config.get('exts', ['dcs', 'dcm', 'nii.gz', "mhd"])
 
+        # Colormap settings
         self.ogb_cmap1_edit = QtWidgets.QLineEdit(self)
         self.ogb_cmap1_edit.setText(str(ogb_cmap[0]))
+        self.ogb_cmap1_edit.setToolTip("Enter the colormap value for the first object group.")
+        self.layout_.addWidget(QtWidgets.QLabel("Colormap threshold the Orange group"))
         self.layout_.addWidget(self.ogb_cmap1_edit)
 
         self.ogb_cmap2_edit = QtWidgets.QLineEdit(self)
         self.ogb_cmap2_edit.setText(str(ogb_cmap[1]))
+        self.ogb_cmap2_edit.setToolTip("Enter the colormap value for the second object group.")
+        self.layout_.addWidget(QtWidgets.QLabel("Colormap threshold the Green group"))
         self.layout_.addWidget(self.ogb_cmap2_edit)
 
         self.ogb_cmap3_edit = QtWidgets.QLineEdit(self)
         self.ogb_cmap3_edit.setText(str(ogb_cmap[2]))
+        self.ogb_cmap3_edit.setToolTip("Enter the colormap value for the third object group.")
+        self.layout_.addWidget(QtWidgets.QLabel("Colormap threshold the Blue group"))
         self.layout_.addWidget(self.ogb_cmap3_edit)
 
+        # Opacity settings
         self.alpha1_edit = QtWidgets.QLineEdit(self)
         self.alpha1_edit.setText(str(alpha_weights[0]))
+        self.alpha1_edit.setToolTip("Enter the opacity level for the first object group.")
+        self.layout_.addWidget(QtWidgets.QLabel("Opacity value for the Orange group"))
         self.layout_.addWidget(self.alpha1_edit)
 
         self.alpha2_edit = QtWidgets.QLineEdit(self)
         self.alpha2_edit.setText(str(alpha_weights[1]))
+        self.alpha2_edit.setToolTip("Enter the opacity level for the second object group.")
+        self.layout_.addWidget(QtWidgets.QLabel("Opacity value for the Green group"))
         self.layout_.addWidget(self.alpha2_edit)
 
         self.alpha3_edit = QtWidgets.QLineEdit(self)
         self.alpha3_edit.setText(str(alpha_weights[2]))
+        self.alpha3_edit.setToolTip("Enter the opacity level for the third object group.")
+        self.layout_.addWidget(QtWidgets.QLabel("Opacity value for the Blue group"))
         self.layout_.addWidget(self.alpha3_edit)
 
-        # add a checkbox list for extenstions that can be loaded and save them in self to be used in updateSettings
-        # Add a vertival layout for the checkboxes
-        self.exts_layout = QtWidgets.QVBoxLayout()
+        # Supported file extensions settings
+        self.layout_.addWidget(QtWidgets.QLabel("Supported File Extensions"))
+        self.exts_layout = QtWidgets.QHBoxLayout()
         for ext in exts:
             checkbox = QtWidgets.QCheckBox(ext, self)
             checkbox.setChecked(True)
+            checkbox.setToolTip(f"Enable or disable support for the {ext} file extension.")
             self.exts_layout.addWidget(checkbox)
         self.layout_.addLayout(self.exts_layout)
 
+        # Reset to default button
         self.resetButton = QtWidgets.QPushButton('Reset', self)
+        self.resetButton.setToolTip("Reset all settings to their default values.")
         self.resetButton.clicked.connect(self.reset_settings)
         self.layout_.addWidget(self.resetButton)
 
+        # Apply button
         self.okButton = QtWidgets.QPushButton('Apply', self)
+        self.okButton.setToolTip("Apply the current settings and close the dialog.")
         self.okButton.clicked.connect(lambda: self.updateSettings())
         self.layout_.addWidget(self.okButton)
 
-        # Update the user settings
-        self.ogb = [(ogb_cmap[0], colors[0]), (ogb_cmap[1],
-                                                 colors[1]), (ogb_cmap[2], colors[2])]
-        self.alpha = [(0, 1), (ogb_cmap[0], alpha_weights[0]),
-                        (ogb_cmap[1], alpha_weights[1]), (ogb_cmap[2], alpha_weights[2])]
+        # Update internal settings
+        self.ogb = [(ogb_cmap[0], colors[0]), (ogb_cmap[1], colors[1]), (ogb_cmap[2], colors[2])]
+        self.alpha = [(0, 1), (ogb_cmap[0], alpha_weights[0]), (ogb_cmap[1], alpha_weights[1]), (ogb_cmap[2], alpha_weights[2])]
 
     def updateSettings(self):
         """
