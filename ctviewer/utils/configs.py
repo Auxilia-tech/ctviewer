@@ -21,7 +21,7 @@ class ConfigManager:
     """
 
     def __init__(self, config_file=ROOT / 'config.json'):
-        self.config_file = config_file
+        self.config_file = Path(config_file)
         self.config = self.load_config()
 
     def load_config(self):
