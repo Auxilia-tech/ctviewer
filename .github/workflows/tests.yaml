@@ -35,7 +35,7 @@ jobs:
 
     - name: Run tests
       run: |
-        pytest --cov-report=xml --cov=pydicos tests/
+        pytest --cov-report=xml --cov=ctviewer tests/
 
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v4.5.0
