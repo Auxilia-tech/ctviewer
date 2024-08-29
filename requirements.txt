@@ -1,4 +1,5 @@
 vedo>=2024.5.1
-PyQt5
+PyQt6
 vtk
 connected-components-3d
+pydicos

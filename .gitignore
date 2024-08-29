@@ -24,6 +24,7 @@ share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+*.deb
 MANIFEST
 
 # PyInstaller
@@ -161,3 +162,9 @@ cython_debug/
 
 # Macos files
 **/.DS_Store
+
+# vscode files
+.vscode/
+
+# Export files
+export/

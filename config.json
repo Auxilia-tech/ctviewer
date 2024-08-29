@@ -28,7 +28,13 @@
                 127
             ]
         ],
-        "ext": "mhd",
+        "exts": [
+            "nii.gz",
+            "mhd",
+            "dcm",
+            "dcs",
+            "npy"
+        ],
         "mask_classes": [
             [
                 0,
@@ -45,85 +51,85 @@
             [
                 2,
                 "green",
-                2,
+                1,
                 "Gunpart"
             ],
             [
                 3,
                 "blue",
-                3,
+                1,
                 "Ammunition"
             ],
             [
                 4,
                 "yellow",
-                4,
+                1,
                 "Explosive"
             ],
             [
                 5,
                 "purple",
-                5,
+                1,
                 "Knife"
             ],
             [
                 6,
                 "orange",
-                6,
+                1,
                 "Scissors"
             ],
             [
                 7,
                 "cyan",
-                7,
+                1,
                 "Pointy"
             ],
             [
                 8,
                 "brown",
-                8,
+                1,
                 "Cutter"
             ],
             [
                 9,
                 "grey",
-                9,
+                1,
                 "Screwdriver"
             ],
             [
                 10,
                 "black",
-                10,
+                1,
                 "Saw"
             ],
             [
                 11,
                 "red",
-                11,
+                1,
                 "Hammer"
             ],
             [
                 12,
                 "green",
-                12,
+                1,
                 "Plier"
             ],
             [
                 13,
                 "blue",
-                13,
+                1,
                 "Wrench"
             ],
             [
                 14,
                 "yellow",
-                14,
+                1,
                 "Axe"
             ],
             [
                 15,
                 "purple",
-                15,
+                1,
                 "Corkscrew"
             ]
         ]
@@ -136,7 +142,7 @@
             5500
         ],
         "alpha_weights": [
-            1.0,
+            1,
             0.7,
             0.7
         ],
@@ -157,7 +163,13 @@
                 127
             ]
         ],
-        "ext": "nii.gz",
+        "exts": [
+            "nii.gz",
+            "mhd",
+            "dcm",
+            "dcs",
+            "npy"
+        ],
         "mask_classes": [
             [
                 0,
@@ -174,85 +186,85 @@
             [
                 2,
                 "green",
-                2,
+                1,
                 "Gunpart"
             ],
             [
                 3,
                 "blue",
-                3,
+                1,
                 "Ammunition"
             ],
             [
                 4,
                 "yellow",
-                4,
+                1,
                 "Explosive"
             ],
             [
                 5,
                 "purple",
-                5,
+                1,
                 "Knife"
             ],
             [
                 6,
                 "orange",
-                6,
+                1,
                 "Scissors"
             ],
             [
                 7,
                 "cyan",
-                7,
+                1,
                 "Pointy"
             ],
             [
                 8,
                 "brown",
-                8,
+                1,
                 "Cutter"
             ],
             [
                 9,
                 "grey",
-                9,
+                1,
                 "Screwdriver"
             ],
             [
                 10,
                 "black",
-                10,
+                1,
                 "Saw"
             ],
             [
                 11,
                 "red",
-                11,
+                1,
                 "Hammer"
             ],
             [
                 12,
                 "green",
-                12,
+                1,
                 "Plier"
             ],
             [
                 13,
                 "blue",
-                13,
+                1,
                 "Wrench"
             ],
             [
                 14,
                 "yellow",
-                14,
+                1,
                 "Axe"
             ],
             [
                 15,
                 "purple",
-                15,
+                1,
                 "Corkscrew"
             ]
         ]
