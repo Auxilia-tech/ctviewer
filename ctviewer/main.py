@@ -1,6 +1,9 @@
+from pathlib import Path
 import sys
 import os
 os.environ['QT_QPA_PLATFORM'] = "xcb"
+ROOT = str(Path(__file__).resolve().parents[1])
+sys.path.insert(0, ROOT)
 
 from PyQt6 import QtWidgets
 
