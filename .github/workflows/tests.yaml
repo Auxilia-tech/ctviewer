@@ -9,7 +9,7 @@ on:
 jobs:
   build:
     name: Run tests and coverage upload
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64]
     strategy:
       fail-fast: true
     env:
