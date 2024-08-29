@@ -1,6 +1,10 @@
 
 # CTViewer
 
+[![License](https://img.shields.io/badge/license-MIT-blue)](https://opensource.org/licenses/MIT)
+[![codecov](https://codecov.io/gh/Auxilia-tech/ctviewer/graph/badge.svg?token=fqsd)](https://codecov.io/gh/Auxilia-tech/ctviewer)
+[![run-tests](https://github.com/Auxilia-tech/ctviewer/actions/workflows/tests.yaml/badge.svg)](https://github.com/Auxilia-tech/ctviewer/actions/workflows/tests.yaml)
+
 <div align="center">
   <img width="40%" src="icons/ctviewer.png" alt="CTViewer Banner">
   <h2>3D CT File Viewer</h2>
@@ -18,6 +22,7 @@
 - [License](#license)
 - [Support](#support)
 - [Acknowledgements](#acknowledgements)
+- [License](#license)
 
 ## Screenshot
 
@@ -120,6 +125,10 @@ For support, please open an issue on [GitHub](https://github.com/Auxilia-tech/ct
 - **Qt**: Cross-platform application framework used for the graphical user interface
 
 ---
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 <div align="center">
   Made with ❤️ by the Auxilia team.
