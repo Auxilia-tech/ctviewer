@@ -80,8 +80,8 @@ class Reader:
 
         for pto in PTOs:
             assert "Base" in pto and "Extent" in pto, "Base or Extent not found in PTO"
-            base = [int(pto["Base"]["x"]), int(pto["Base"]["y"]), int(pto["Base"]["z"])]
-            extent = [int(pto["Extent"]["x"]), int(pto["Extent"]["y"]), int(pto["Extent"]["z"])]
+            base = [int(pto["Base"]["z"]), int(pto["Base"]["y"]), int(pto["Base"]["x"])]
+            extent = [int(pto["Extent"]["z"]), int(pto["Extent"]["y"]), int(pto["Extent"]["x"])]
             pos =  [base[0], base[0] + extent[0], base[1], base[1] + extent[1], base[2], base[2] + extent[2]]
             max_dims = [max(max_dims[0], pos[1]), max(max_dims[1], pos[3]), max(max_dims[2], pos[5])]
             self.properties["poses"].append(np.array(pos))
@@ -95,9 +95,11 @@ class Reader:
         for pto in PTOs:
             assert "Base" in pto and "Extent" in pto, "Base or Extent not found in PTO"
             if "Bitmap" in pto and len(pto["Bitmap"].shape) > 0:
-                base = [int(pto["Base"]["x"]), int(pto["Base"]["y"]), int(pto["Base"]["z"])]
-                extent = [int(pto["Extent"]["x"]), int(pto["Extent"]["y"]), int(pto["Extent"]["z"])]
-                mask[base[0]:base[0]+extent[0], base[1]:base[1]+extent[1], base[2]:base[2]+extent[2]] = pto["Bitmap"].astype(np.uint8)
+                base = [int(pto["Base"]["z"]), int(pto["Base"]["y"]), int(pto["Base"]["x"])]
+                extent = [int(pto["Extent"]["z"]), int(pto["Extent"]["y"]), int(pto["Extent"]["x"])]
+                temp_mask = mask[base[0]:base[0]+extent[0], base[1]:base[1]+extent[1], base[2]:base[2]+extent[2]]
+                temp_mask = np.logical_or(temp_mask, pto["Bitmap"].astype(np.uint8))
+                mask[base[0]:base[0] + extent[0], base[1]:base[1] + extent[1], base[2]:base[2] + extent[2]] = temp_mask
         
         if mask.sum() == 0:
             print("Warning: No mask found in PTOs")
