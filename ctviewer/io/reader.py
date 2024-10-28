@@ -1,6 +1,6 @@
 from typing import Tuple, List
 
-from vedo import Volume, np
+from vedo import Volume, Image, np
 from pydicos import dcsread
 
 from ctviewer.utils import connected_components_3d
@@ -20,7 +20,7 @@ class Reader:
         Initializes the reader with default properties.
 
         """
-        self.properties = {"spacing": (1, 1, 1), "origin": (0, 0, 0), "is_mask": False, "poses": [], "flag_poses": [], "labels": []}
+        self.properties = {"spacing": (1, 1, 1), "origin": (0, 0, 0), "is_proj": False, "is_mask": False, "poses": [], "flag_poses": [], "labels": []}
 
     def __call__(self, path: str) -> Tuple[Volume, dict]:
         """
@@ -54,7 +54,11 @@ class Reader:
             if isinstance(data, np.ndarray):
                 volume = Volume(data)
             elif isinstance(data, List):
-                volume = Volume(data[0])
+                if data[0].shape[0] == 1: # check if the volume is a projection
+                    self.properties["is_proj"] = True
+                    volume = Image(data[0][0]/ np.max(data[0][0]) * 255, channels=1)
+                else:
+                    volume = Volume(data[0])
             elif isinstance(data, dict):
                 volume = self.Read_TDR_data(data) 
                 volume = Volume(volume)
@@ -109,4 +113,4 @@ class Reader:
         
     def reset_properties(self):
         """ Reset the properties to default values. """
-        self.properties = {"spacing": (1, 1, 1), "origin": (0, 0, 0), "is_mask": False, "poses": [], "flag_poses": [], "labels": []}
+        self.__init__()

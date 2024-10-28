@@ -1,12 +1,13 @@
 from typing import Tuple, List, Dict
 
 import vedo
-from vedo import Volume, Plotter, Box, Text3D, Flagpost, np, addons
+from vedo import Volume, Image, Plotter, Box, Text3D, Flagpost, np, addons
 
 from ctviewer.io import Reader
 from .callbacks import RendererCallbacks
 from .ray_caster import RayCaster
 from .iso_surfer import IsoSurfer
+from .image_viewer import ImageViewer
 from .slicer import Slicer
 
 
@@ -46,6 +47,7 @@ class Renderer(Plotter):
 
         self.volume = Volume(np.zeros((1, 1, 1))).color(self.ogb).alpha(self.alpha).origin((0, 0, 0))
         self.mask_ = Volume(np.zeros((1, 1, 1))).color("red").alpha([0]+[1]*(len(self.mask_classes)-1)).origin((0, 0, 0))
+        self.image = Image(np.zeros((1, 1)), channels=1).enhance().cmap("hot")
 
         self.add([self.volume, self.mask_])
 
@@ -58,6 +60,7 @@ class Renderer(Plotter):
         self.ray_caster = RayCaster(self.volume, self.ogb, self.alpha, self.callbacks)
         self.iso_surfer = IsoSurfer(self.volume, isovalue, sliderpos, delayed, self.callbacks)
         self.slicer = Slicer(self.volume, self.ogb, self.callbacks)
+        self.image_viewer = ImageViewer(self.image, self.callbacks)
 
     def ray_cast_mode(self, volume_mode:int=1):
         """
@@ -102,6 +105,16 @@ class Renderer(Plotter):
         self.ray_caster.update_sliders((0, 0, 0)) # Hide the volume
         self.slicer.activate(clamp)
         self.render()
+    
+    def image_viewer_mode(self):
+        """
+        Initialize an image viewer with the given parameters.
+        """
+        if self.image_viewer.is_active():
+            return
+        self.quit_current_mode()
+        self.image_viewer.activate()
+        self.render()
 
     def quit_current_mode(self):
         """
@@ -113,6 +126,8 @@ class Renderer(Plotter):
             self.iso_surfer.deactivate()
         elif self.slicer.is_active():
             self.slicer.deactivate()
+        elif self.image_viewer.is_active():
+            self.image_viewer.deactivate()
         self.render()
 
     def clean_view(self):
@@ -132,7 +147,7 @@ class Renderer(Plotter):
         """
         self.remove_flags()
         self.mask_._update(Volume(np.zeros((1, 1, 1))).dataset)
-        if not self.ray_caster.is_active() and not self.iso_surfer.is_active() and not self.slicer.is_active():
+        if not self.ray_caster.is_active() and not self.iso_surfer.is_active() and not self.slicer.is_active() and not self.image_viewer.is_active():
             self.delete_current_axes()
         self.render()
 
@@ -254,6 +269,12 @@ class Renderer(Plotter):
         """
         self.reader.reset_properties()
         vol, volume_properties = self.reader(volume_path)
+        if volume_properties["is_proj"]:
+            self.image._update(vol.dataset)
+            self.clean_view()
+            self.image_viewer_mode()
+        else:
+            self.image_viewer.deactivate()
         if volume_properties["is_mask"]:
             self.remove_flags()
             self.mask_._update(vol.dataset).alpha([0]+[1]*(len(self.mask_classes)-1)) # keep the background transparent
@@ -262,7 +283,7 @@ class Renderer(Plotter):
                 self.show(viewup='z')
         else:
             self.volume._update(vol.dataset)
-        if not self.ray_caster.is_active() and not self.iso_surfer.is_active() and not self.slicer.is_active() :
+        if not self.ray_caster.is_active() and not self.iso_surfer.is_active() and not self.slicer.is_active() and not self.image_viewer.is_active():
             self.ray_cast_mode(1)
             self.show(viewup='z')
         self.refresh_axes()
