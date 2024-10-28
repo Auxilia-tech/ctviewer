@@ -107,7 +107,7 @@ class Reader:
         
         if mask.sum() == 0:
             print("Warning: No mask found in PTOs")
-            mask[0, 0, 0] = 1  # add a dummy mask
+            mask = np.zeros((1, 1, 1), dtype=np.uint8)
 
         return mask
         
