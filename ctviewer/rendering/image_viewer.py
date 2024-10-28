@@ -9,7 +9,7 @@ class ImageViewer():
         self.on = False
 
     def activate(self):
-        # self.image.enhance()#.cmap("jet")
+        self.image.invert().enhance().bw()
         self.callbacks.add(self.image)
         self.callbacks.reset_camera()
         self.on = True

@@ -272,9 +272,12 @@ class Renderer(Plotter):
         if volume_properties["is_proj"]:
             self.image._update(vol.dataset)
             self.clean_view()
+            self.remove([self.volume, self.mask_])
             self.image_viewer_mode()
-        else:
+            self.show(viewup='x')
+        elif self.image_viewer.is_active():
             self.image_viewer.deactivate()
+            self.add([self.volume, self.mask_])
         if volume_properties["is_mask"]:
             self.remove_flags()
             self.mask_._update(vol.dataset).alpha([0]+[1]*(len(self.mask_classes)-1)) # keep the background transparent
