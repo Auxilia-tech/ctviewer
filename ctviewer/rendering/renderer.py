@@ -40,7 +40,7 @@ class Renderer(Plotter):
         super().__init__(**kwargs)
         """ Initialize the renderer with the given parameters. """
 
-        self.ogb, self.alpha, self.mask_classes = ogb, alpha, mask_classes
+        self.ogb, self.alpha, self.mask_classes, self.isovalue = ogb, alpha, mask_classes, isovalue
 
         self.mask_alpha = [val[2] for val in mask_classes] if mask_classes is not None else 0.5
         self.mask_flags = {val[0]: val[3] for val in mask_classes} if mask_classes is not None else None
@@ -274,23 +274,28 @@ class Renderer(Plotter):
             self.clean_view()
             self.remove([self.volume, self.mask_])
             self.image_viewer_mode()
-            self.show(viewup='x')
+            if not self.at_least_one_mode_active():
+                self.show(viewup='x')
         elif self.image_viewer.is_active():
+            self.clean_view()
             self.image_viewer.deactivate()
             self.add([self.volume, self.mask_])
         if volume_properties["is_mask"]:
             self.remove_flags()
             self.mask_._update(vol.dataset).alpha([0]+[1]*(len(self.mask_classes)-1)) # keep the background transparent
             self.add_flags(volume_properties)
-            if not self.ray_caster.is_active() and not self.iso_surfer.is_active() and not self.slicer.is_active():
+            if not self.at_least_one_mode_active():
                 self.show(viewup='z')
         else:
             self.volume._update(vol.dataset)
-        if not self.ray_caster.is_active() and not self.iso_surfer.is_active() and not self.slicer.is_active() and not self.image_viewer.is_active():
+        if not self.at_least_one_mode_active():
             self.ray_cast_mode(1)
             self.show(viewup='z')
         self.refresh_axes()
         self.render()
+
+    def at_least_one_mode_active(self):
+        return self.ray_caster.is_active() or self.iso_surfer.is_active() or self.slicer.is_active() or self.image_viewer.is_active()
     
     def update_user_config(self, user_config:Dict):
         """
@@ -301,7 +306,8 @@ class Renderer(Plotter):
         user_config : dict
             The user configuration to update
         """
-        self.ogb, self.alpha = user_config['ogb'], user_config['alpha']
+        self.ogb, self.alpha, self.isovalue = user_config['ogb'], user_config['alpha'], user_config['isovalue']
+        self.iso_surfer.update_isovalue(self.isovalue)
         self.mask_alpha = [val[2] for val in user_config['mask_classes']]
         self.mask_flags = {val[0]: val[3] for val in user_config['mask_classes']}
         self.volume.color(self.ogb).alpha(self.alpha)
