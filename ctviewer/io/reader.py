@@ -50,7 +50,8 @@ class Reader:
                 self.properties["spacing"] = volume.spacing()
                 self.properties["origin"] = volume.origin()
         elif ext == 'dcs':
-            data = dcsread(path).get_data()
+            ct = dcsread(path)
+            data = ct.get_data()
             if isinstance(data, np.ndarray):
                 volume = Volume(data)
             elif isinstance(data, List):
@@ -59,6 +60,8 @@ class Reader:
                     volume = Image(data[0][0]/ np.max(data[0][0]) * 255, channels=1)
                 else:
                     volume = Volume(data[0])
+                    if ct.GetDeviceManufacturer().Get() == "Analogic":
+                        volume = volume.threshold(above=0, below=350, replace=0).operation("+", 1300)
             elif isinstance(data, dict):
                 volume = self.Read_TDR_data(data) 
                 volume = Volume(volume)
