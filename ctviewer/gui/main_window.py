@@ -48,7 +48,7 @@ class MainWindow(QMainWindow):
         user_config = self.settingDialog.get_current_config()
         
         # Create a renderer
-        self.renderer = Renderer(**user_config, qt_widget=self.vtkWidget1, isovalue=1350, bg='white', bg2='white', axes=8)
+        self.renderer = Renderer(**user_config, qt_widget=self.vtkWidget1, bg='white', bg2='white', axes=8)
 
         # Create a central widget
         self.centralwidget = QWidget(self)

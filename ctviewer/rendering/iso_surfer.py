@@ -57,8 +57,8 @@ class IsoSurfer():
 
         self.s0 = self.callbacks.add_slider(
             slider_isovalue,
-            scrange[0] + 0.02 * delta,
-            scrange[1] - 0.02 * delta,
+            scrange[0],
+            scrange[1],
             value=self.isovalue,
             pos=self.sliderpos,
             title="scalar value",
@@ -74,7 +74,8 @@ class IsoSurfer():
             value (float): The new isovalue.
         """
         self.isovalue = value
-        self.s0.GetRepresentation().SetValue(value)
+        if hasattr(self, "s0"):
+            self.s0.GetRepresentation().SetValue(value)
         self.volume.properties.GetIsoSurfaceValues().SetValue(0, value)
 
     def check_volume(self):

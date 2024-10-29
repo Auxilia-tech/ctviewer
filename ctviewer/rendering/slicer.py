@@ -169,7 +169,7 @@ class Slicer():
         """ Check if the slicer is active. """
         return self.on
     
-    def activate(self, clamp=True):
+    def activate(self, clamp=True, mode:int = 0):
         """
         Activate the slicer with the input volume.
         If the slicer is already active, the sliders will be turned on again.

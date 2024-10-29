@@ -1,6 +1,6 @@
 from typing import Tuple, List
 
-from vedo import Volume, np
+from vedo import Volume, Image, np
 from pydicos import dcsread
 
 from ctviewer.utils import connected_components_3d
@@ -20,7 +20,7 @@ class Reader:
         Initializes the reader with default properties.
 
         """
-        self.properties = {"spacing": (1, 1, 1), "origin": (0, 0, 0), "is_mask": False, "poses": [], "flag_poses": [], "labels": []}
+        self.properties = {"spacing": (1, 1, 1), "origin": (0, 0, 0), "is_proj": False, "is_mask": False, "poses": [], "flag_poses": [], "labels": []}
 
     def __call__(self, path: str) -> Tuple[Volume, dict]:
         """
@@ -50,11 +50,18 @@ class Reader:
                 self.properties["spacing"] = volume.spacing()
                 self.properties["origin"] = volume.origin()
         elif ext == 'dcs':
-            data = dcsread(path).get_data()
+            ct = dcsread(path)
+            data = ct.get_data()
             if isinstance(data, np.ndarray):
                 volume = Volume(data)
             elif isinstance(data, List):
-                volume = Volume(data[0])
+                if data[0].shape[0] == 1: # check if the volume is a projection
+                    self.properties["is_proj"] = True
+                    volume = Image(data[0][0]/ np.max(data[0][0]) * 255, channels=1)
+                else:
+                    volume = Volume(data[0])
+                    if ct.GetDeviceManufacturer().Get() == "Analogic":
+                        volume = volume.threshold(above=0, below=350, replace=0).operation("+", 1300)
             elif isinstance(data, dict):
                 volume = self.Read_TDR_data(data) 
                 volume = Volume(volume)
@@ -80,8 +87,8 @@ class Reader:
 
         for pto in PTOs:
             assert "Base" in pto and "Extent" in pto, "Base or Extent not found in PTO"
-            base = [int(pto["Base"]["x"]), int(pto["Base"]["y"]), int(pto["Base"]["z"])]
-            extent = [int(pto["Extent"]["x"]), int(pto["Extent"]["y"]), int(pto["Extent"]["z"])]
+            base = [int(pto["Base"]["z"]), int(pto["Base"]["y"]), int(pto["Base"]["x"])]
+            extent = [int(pto["Extent"]["z"]), int(pto["Extent"]["y"]), int(pto["Extent"]["x"])]
             pos =  [base[0], base[0] + extent[0], base[1], base[1] + extent[1], base[2], base[2] + extent[2]]
             max_dims = [max(max_dims[0], pos[1]), max(max_dims[1], pos[3]), max(max_dims[2], pos[5])]
             self.properties["poses"].append(np.array(pos))
@@ -95,16 +102,18 @@ class Reader:
         for pto in PTOs:
             assert "Base" in pto and "Extent" in pto, "Base or Extent not found in PTO"
             if "Bitmap" in pto and len(pto["Bitmap"].shape) > 0:
-                base = [int(pto["Base"]["x"]), int(pto["Base"]["y"]), int(pto["Base"]["z"])]
-                extent = [int(pto["Extent"]["x"]), int(pto["Extent"]["y"]), int(pto["Extent"]["z"])]
-                mask[base[0]:base[0]+extent[0], base[1]:base[1]+extent[1], base[2]:base[2]+extent[2]] = pto["Bitmap"].astype(np.uint8)
+                base = [int(pto["Base"]["z"]), int(pto["Base"]["y"]), int(pto["Base"]["x"])]
+                extent = [int(pto["Extent"]["z"]), int(pto["Extent"]["y"]), int(pto["Extent"]["x"])]
+                temp_mask = mask[base[0]:base[0]+extent[0], base[1]:base[1]+extent[1], base[2]:base[2]+extent[2]]
+                temp_mask = np.logical_or(temp_mask, pto["Bitmap"].astype(np.uint8))
+                mask[base[0]:base[0] + extent[0], base[1]:base[1] + extent[1], base[2]:base[2] + extent[2]] = temp_mask
         
         if mask.sum() == 0:
             print("Warning: No mask found in PTOs")
-            mask[0, 0, 0] = 1  # add a dummy mask
+            mask = np.zeros((1, 1, 1), dtype=np.uint8)
 
         return mask
         
     def reset_properties(self):
         """ Reset the properties to default values. """
-        self.properties = {"spacing": (1, 1, 1), "origin": (0, 0, 0), "is_mask": False, "poses": [], "flag_poses": [], "labels": []}
+        self.__init__()

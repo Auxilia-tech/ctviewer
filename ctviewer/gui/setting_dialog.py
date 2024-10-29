@@ -56,6 +56,7 @@ class SettingDialog(QtWidgets.QDialog):
         colors = self.user_config.get('colors')
         ogb_cmap = self.user_config.get('ogb_cmap')
         alpha_weights = self.user_config.get('alpha_weights')
+        isovalue = self.user_config.get('isovalue', 1350)
         exts = self.user_config.get('exts', ['dcs', 'dcm', 'nii.gz', "mhd"])
 
         # Colormap settings
@@ -121,6 +122,7 @@ class SettingDialog(QtWidgets.QDialog):
         # Update internal settings
         self.ogb = [(ogb_cmap[0], colors[0]), (ogb_cmap[1], colors[1]), (ogb_cmap[2], colors[2])]
         self.alpha = [(0, 1), (ogb_cmap[0], alpha_weights[0]), (ogb_cmap[1], alpha_weights[1]), (ogb_cmap[2], alpha_weights[2])]
+        self.isovalue = isovalue
 
     def updateSettings(self):
         """
@@ -268,4 +270,19 @@ class SettingDialog(QtWidgets.QDialog):
             'ogb': self.ogb,
             'alpha': self.alpha,
             'mask_classes': self.get_mask_classes(),
+            'isovalue': self.isovalue,
         }
+
+    def update_brand(self, min_max:int=16000) -> None:
+        """
+        Update the branding.
+
+        Args:
+            min_max (int): The minimum and maximum value of the volume.
+            Defaults to 16000.
+        
+        Returns:
+            None.
+        """
+        # Get the current configuration settings.
+        pass

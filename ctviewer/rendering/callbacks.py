@@ -56,3 +56,7 @@ class RendererCallbacks:
     def clear(self):
         """Clear the renderer."""
         self.renderer.clear()
+
+    def reset_camera(self):
+        """Reset camera to default position and orientation."""
+        self.renderer.reset_camera()
