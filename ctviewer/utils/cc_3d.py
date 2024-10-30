@@ -27,7 +27,7 @@ def connected_components_3d(volume:Volume, connectivity=26, reshape_factor:float
             - labels : list 
                 The list of class labels of the connected components
     """
-    volume_properties = {"spacing": (1, 1, 1), "origin": (0, 0, 0), "is_mask": True, "poses": [], "flag_poses": [], "labels": []}
+    volume_properties = {"spacing": (1, 1, 1), "origin": (0, 0, 0), "is_proj": False, "is_mask": True, "poses": [], "flag_poses": [], "labels": []}
     volume.dilate((2*reshape_factor, 2*reshape_factor, 2*reshape_factor)).erode((reshape_factor, reshape_factor, reshape_factor))
     vol = volume.tonumpy()[::reshape_factor, ::reshape_factor, ::reshape_factor]
     labels_out, N = cc3d.connected_components(vol, connectivity=connectivity, return_N=True)
